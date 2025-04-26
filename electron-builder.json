@@ -1,0 +1,17 @@
+{
+  "appId": "com.aniparser.app",
+  "files": ["dist-react", "dist-electron"],
+  "mac": {
+    "target": ["zip", "dir"],
+    "icon": "public/icon.png"
+  },
+  "win": {
+    "target": ["msi"],
+    "icon": "public/icon.png"
+  },
+  "linux": {
+    "icon": "public/icon.png",
+    "target": ["AppImage", "tar.gz", "deb"],
+    "category": "Utility"
+  }
+}

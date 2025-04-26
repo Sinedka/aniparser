@@ -1,0 +1,269 @@
+.anime-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.anime-page-info {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: var(--background-tertiary);
+  border-radius: 12px;
+}
+
+.anime-page-poster {
+  flex-shrink: 0;
+}
+
+.anime-page-thumbnail {
+  width: 300px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.anime-page-title-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.anime-page-title {
+  font-size: 2.2em;
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 600;
+  order: 0;
+}
+
+.rating-container-page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--input-background);
+  padding: 8px 12px;
+  border-radius: 6px;
+  width: fit-content;
+  margin: 0;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: #4a4a4a;
+  font-size: 1.2em;
+}
+
+.star.filled {
+  color: #ffd700;
+}
+
+.rating-value {
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.anime-page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  order: 2;
+}
+
+.meta-el {
+  padding: 6px 12px;
+  background: var(--input-background);
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--text-primary);
+}
+
+.anime-status[data-status="анонс"] {
+  background-color: var(--status-announced);
+  color: var(--status-announced-text);
+}
+
+.anime-status[data-status="вышел"] {
+  background-color: var(--status-completed);
+  color: var(--status-completed-text);
+}
+
+.anime-status[data-status="онгоинг"] {
+  background-color: var(--status-ongoing);
+  color: var(--status-ongoing-text);
+}
+
+.anime-page-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  order: 3;
+}
+
+.genre-tag {
+  padding: 4px 10px;
+  background: var(--input-background);
+  border-radius: 20px;
+  font-size: 0.85em;
+  color: var(--text-primary);
+}
+
+.watch-button {
+  padding: 12px 30px;
+  background: var(--accent-primary);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  order: 4;
+  align-self: flex-start;
+  margin: 0;
+}
+
+.watch-button:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.anime-page-description-container {
+  background: var(--background-tertiary);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.anime-page-description {
+  line-height: 1.7;
+  color: var(--text-secondary);
+  font-size: 1.05em;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  margin: 0 0 20px 0;
+}
+
+.viewing-order-container {
+  margin-top: 20px;
+}
+
+.viewing-order-title {
+  font-size: 1.5em;
+  color: var(--text-primary);
+  margin: 0 0 15px 0;
+  font-weight: 600;
+}
+
+.viewing-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.viewing-order-item {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  gap: 20px;
+}
+
+.viewing-order-item-poster {
+  flex-shrink: 0;
+}
+
+.viewing-order-item-thumbnail {
+  width: 150px;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px var(--shadow);
+}
+
+.viewing-order-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.viewing-order-item-title {
+  font-size: 1.2em;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 500;
+}
+
+.viewing-order-item-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.viewing-order-item-type,
+.viewing-order-item-year,
+.viewing-order-item-status {
+  padding: 4px 8px;
+  background: var(--input-background);
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: var(--text-primary);
+}
+
+.viewing-order-item-status[data-status="Онгоинг"] {
+  background: var(--status-ongoing);
+  color: var(--status-ongoing-text);
+}
+
+.viewing-order-item-status[data-status="Завершён"] {
+  background: var(--status-completed);
+  color: var(--status-completed-text);
+}
+
+.viewing-order-item-status[data-status="Анонс"] {
+  background: var(--status-announced);
+  color: var(--status-announced-text);
+}
+
+.viewing-order-item-status[data-status="Отложен"] {
+  background: var(--status-onhold);
+  color: var(--status-onhold-text);
+}
+
+.viewing-order-item-status[data-status="Отменён"] {
+  background: var(--status-canceled);
+  color: var(--status-canceled-text);
+}
+
+.viewing-order-item-status[data-status="Запланирован"] {
+  background: var(--status-planned);
+  color: var(--status-planned-text);
+}
+
+.viewing-order-item-description {
+  color: var(--text-secondary);
+  font-size: 0.95em;
+  line-height: 1.6;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+}

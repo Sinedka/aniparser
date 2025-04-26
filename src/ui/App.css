@@ -1,0 +1,26 @@
+header {
+  display: flex;
+  align-items: center;
+  z-index: 100;
+  width: 100%;
+}
+
+header button {
+  padding: 10px 20px;
+  position: absolute;
+  right: 0;
+  margin: 10px;
+  background: var(--gradient-button);
+  color: var(--text-primary);
+  border: none;
+}
+
+header h1 {
+  margin: 10px;
+  margin-right: 20px;
+  color: var(--text-primary);
+}
+
+::-webkit-scrollbar {
+  width: 0;
+}

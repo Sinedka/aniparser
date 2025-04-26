@@ -1,0 +1,107 @@
+.thumbnail-img {
+  height: auto;
+  border-radius: 16px;
+}
+
+.thumbnail {
+  display: flex;
+  position: relative;
+}
+
+.anime-plate {
+  display: flex;
+  height: 400px;
+  flex-direction: row;
+  padding: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s;
+  overflow: hidden;
+}
+
+.anime-plate:hover {
+  background-color: var(--input-background);
+}
+
+.anime-data {
+  display: flex;
+  flex-direction: column;
+  margin-left: 15px;
+  flex: 1;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.anime-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+.small-info {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.small-info-el {
+  background-color: var(--input-background);
+  padding: 5px 8px;
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+.anime-status[data-status="анонс"] {
+  background-color: var(--status-announced);
+  color: var(--status-announced-text);
+}
+
+.anime-status[data-status="вышел"] {
+  background-color: var(--status-completed);
+  color: var(--status-completed-text);
+}
+
+.anime-status[data-status="онгоинг"] {
+  background-color: var(--status-ongoing);
+  color: var(--status-ongoing-text);
+}
+
+.rating-container {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: var(--player-background-overlay);
+  padding: 5px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: #666;
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+.star.filled {
+  color: #ffd700;
+  text-shadow: 0 0 2px rgba(255, 215, 0, 0.5);
+}
+
+.rating-value {
+  color: var(--text-primary);
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: 5px;
+}

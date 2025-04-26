@@ -1,0 +1,92 @@
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: var(--gradient-header);
+  box-shadow: 0 4px 6px var(--shadow);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-center {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.header-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header h1 {
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 2px 4px var(--shadow);
+}
+
+.header input {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 20px;
+  background: var(--input-background);
+  color: var(--text-primary);
+  font-size: 14px;
+  width: 300px;
+  transition: all 0.3s ease;
+}
+
+.header input:focus {
+  outline: none;
+  background: var(--input-background-focus);
+  box-shadow: 0 0 0 2px var(--input-outline);
+}
+
+.header input::placeholder {
+  color: var(--text-disabled);
+}
+
+.header button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background: var(--gradient-button);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.header button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow);
+}
+
+.header button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.search-container button {
+  padding: 10px;
+  min-width: 40px;
+}

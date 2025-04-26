@@ -1,0 +1,45 @@
+:root {
+  /* Основные цвета */
+  --background-primary: #121519;
+  --background-secondary: #1a1e25;
+  --background-tertiary: #242c38;
+
+  /* Текст */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-disabled: rgba(255, 255, 255, 0.5);
+
+  /* Акцентные цвета */
+  --accent-primary: #2196f3;
+  --accent-secondary: #1976d2;
+
+  /* Границы и тени */
+  --border: rgba(255, 255, 255, 0.12);
+  --shadow: rgba(0, 0, 0, 0.25);
+
+  /* Состояния элементов */
+  --input-background: rgba(255, 255, 255, 0.08);
+  --input-background-focus: rgba(255, 255, 255, 0.15);
+  --input-outline: rgba(255, 255, 255, 0.2);
+
+  /* Градиенты */
+  --gradient-header: linear-gradient(135deg, #1a1e25 0%, #242c38 100%);
+  --gradient-button: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+
+  /* Статусы */
+  /* Основные статусы */
+  --status-ongoing: rgb(17, 147, 253);
+  --status-ongoing-text: #ffffff;
+  --status-completed: rgb(0, 197, 7);
+  --status-completed-text: #000000;
+  --status-announced: rgb(255, 193, 7);
+  --status-announced-text: #000000;
+
+  /* Плеер */
+  --player-background: #0c1014;
+  --player-background-overlay: rgba(12, 16, 20, 0.8);
+  --player-controls-background: rgba(12, 16, 20, 0.95);
+  --player-active-item: rgba(33, 150, 243, 0.3);
+  --player-border: rgba(255, 255, 255, 0.15);
+  --player-loading-overlay: rgba(12, 16, 20, 0.7);
+}

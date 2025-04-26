@@ -1,0 +1,348 @@
+.custom-player {
+  width: 100%;
+  position: relative;
+  background-color: var(--player-background);
+  overflow: hidden;
+  border-radius: 4px;
+  max-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Отключаем подсветку фокуса для контейнера видео и его потомков */
+.video-container {
+  position: relative;
+  aspect-ratio: 16/9;
+  max-height: calc(100vh - 120px);
+  overflow: hidden;
+  flex: 1;
+  outline: none !important; /* Убираем контур фокуса */
+}
+
+/* Класс для скрытия курсора мыши */
+.cursor-hidden {
+  cursor: none !important;
+}
+
+.video-container:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.video-container * {
+  outline: none !important;
+}
+
+/* Убираем подсветку для всех элементов плеера */
+.custom-player button:focus,
+.custom-player input:focus,
+.custom-player video:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-height: 100%;
+}
+
+@media screen and (max-height: 600px) {
+  .custom-player {
+    max-height: 90vh;
+  }
+
+  .video-container {
+    max-height: calc(90vh - 20px);
+  }
+}
+
+.big-play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  background-color: var(--player-background-overlay);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 5;
+}
+
+@media screen and (max-height: 500px) {
+  .big-play-button {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+.custom-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--player-background-overlay);
+  padding: 10px;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.custom-controls.hidden {
+  opacity: 0;
+}
+
+.progress-bar-container {
+  height: 5px;
+  background-color: var(--input-background);
+  cursor: pointer;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.buffered-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: var(--input-background-focus);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: var(--accent-primary);
+  z-index: 2;
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.middle-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.control-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  margin: 0 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+/* Стили для неактивных кнопок переключения серий */
+.control-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control-button:hover:not([disabled]) {
+  background-color: var(--input-background);
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.volume-slider {
+  width: 60px;
+  accent-color: var(--accent-primary);
+}
+
+.time-display {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.selector {
+  position: relative;
+}
+
+.selector-button {
+  background-color: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+}
+
+/* Стили для элементов управления скоростью */
+.speed-selector {
+  position: relative;
+}
+
+.speed-button {
+  background-color: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.speed-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background-color: var(--player-controls-background);
+  border-radius: 4px;
+  padding: 10px;
+  z-index: 15;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.speed-item {
+  background-color: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 5px 10px;
+  text-align: center;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.speed-item:hover {
+  background-color: var(--input-background);
+}
+
+.speed-item.active {
+  background-color: var(--player-active-item);
+  font-weight: bold;
+}
+
+.dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background-color: var(--player-controls-background);
+  border-radius: 4px;
+  padding: 10px;
+  z-index: 15;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.episode-menu {
+  max-height: 200px;
+  overflow-y: auto;
+  min-width: 150px;
+}
+
+@media screen and (max-height: 600px) {
+  .episode-menu {
+    max-height: 150px;
+  }
+}
+
+.dropdown-item {
+  background-color: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 5px 10px;
+  text-align: left;
+  border-radius: 2px;
+}
+
+.dropdown-item.active {
+  background-color: var(--player-active-item);
+}
+
+.skip-button {
+  position: absolute;
+  top: -40px;
+  right: 20px;
+  background-color: var(--player-background-overlay);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.skip-button:hover {
+  background-color: var(--player-controls-background);
+}
+
+/* Стили для индикатора загрузки */
+.loading-spinner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--player-loading-overlay);
+  z-index: 6;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid var(--player-border);
+  border-radius: 50%;
+  border-top-color: var(--accent-primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Стили для отключенных кнопок при загрузке */
+.control-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
