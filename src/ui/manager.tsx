@@ -1,6 +1,6 @@
 import SearchPage from "./components/AnimeSearchPage";
 import AnimePage from "./components/AnimePage";
-import { Player } from "./components/player";
+import { Player } from "./components/player/player";
 import { Anime } from "../api/source/Yumme_anime_ru";
 export enum BodyType {
   Search,
@@ -17,15 +17,12 @@ export class BodyElement {
     this.value = value;
   }
 
-  render() {
-    if (this.type === BodyType.Player && this.value instanceof Anime) {
+  get Body() {
+    if (this.type === BodyType.Player && this.value instanceof Anime)
       return <Player anime={this.value} />;
-    }
-    if (this.type === BodyType.Search && typeof this.value === "string") {
+    if (this.type === BodyType.Search && typeof this.value === "string")
       return <SearchPage query={this.value} />;
-    }
-    if (this.type === BodyType.Anime && typeof this.value === "string") {
+    if (this.type === BodyType.Anime && typeof this.value === "string")
       return <AnimePage url={this.value} />;
-    }
   }
 }

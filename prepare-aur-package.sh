@@ -8,7 +8,7 @@
 
 # Переменные
 PKGNAME="aniparser"
-PKGVER="2.0.0"
+PKGVER="2.0.1"
 DEST_DIR="aniparser/$PKGNAME-$PKGVER"
 
 # Очистка предыдущих сборок

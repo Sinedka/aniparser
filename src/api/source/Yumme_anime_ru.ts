@@ -5,7 +5,7 @@ import {
   MinAge,
   Poster,
   Rating,
-  Video,
+  VideoInfo,
   RemoteIds,
   Creator,
   Studio,
@@ -15,6 +15,7 @@ import {
   ViewingOrder,
   RandomScreenshot,
   Top,
+  Dubber,
 } from "./yummi_anime_types";
 
 interface ApiResponse<T> {
@@ -29,7 +30,7 @@ interface Source {
 interface EpisodeData {
   title: string;
   num: number;
-  videos: Video[];
+  videos: VideoInfo[];
 }
 
 interface SearchResult {
@@ -76,7 +77,7 @@ interface AnimeResult {
   other_titles: string[];
   creators: Creator[];
   studios: Studio[];
-  videos: Video[];
+  videos: VideoInfo[];
   genres: Genre[];
   viewing_order: ViewingOrder[];
   translates: Translates[];
@@ -183,45 +184,52 @@ export class Ongoing {
 
 export class Anime {
   public animeResult: AnimeResult;
-  public episodes: Episode[];
+  public dubbers: Dubber[];
   constructor(animeResult: AnimeResult) {
     this.animeResult = animeResult;
-    this.episodes = this.getEpisodes();
+    this.dubbers = this.getDubbers();
   }
 
-  getEpisodes(): Episode[] {
-    const t: Record<string, Episode> = {};
+  getDubbers(): Dubber[] {
+    const t: Record<string, Dubber> = {};
     this.animeResult.videos.forEach((video) => {
       if (video.iframe_url.startsWith("//")) {
         video.iframe_url = "https:" + video.iframe_url;
       }
-      if (!t[video.number]) {
-        t[video.number] = new Episode({
-          title: "Episode " + video.number,
-          num: parseInt(video.number),
-          videos:
-            typeof findExtractor(video.iframe_url) === "undefined"
-              ? []
-              : [video],
-        });
+      if (typeof findExtractor(video.iframe_url) == "undefined") {
+        return;
+      }
+      if (!t[video.data.dubbing]) {
+        t[video.data.dubbing] = {
+          dubbing: video.data.dubbing,
+          player: video.data.player,
+          episodes: [new Video(video)],
+        };
       } else {
         if (typeof findExtractor(video.iframe_url) != "undefined") {
-          t[video.number].episodeData.videos.push(video);
+          t[video.data.dubbing].episodes.push(new Video(video));
         }
       }
     });
-    return Object.values(t);
+    const ans = Object.values(t);
+    ans.forEach((dubber) => {
+      dubber.episodes.sort((a, b) => {
+        return Number(a.video.number) - Number(b.video.number);
+      });
+    });
+    return ans;
   }
 }
 
-export class Episode {
-  public episodeData: EpisodeData;
-  constructor(episodeData: EpisodeData) {
-    this.episodeData = episodeData;
+export class Video {
+  public video: VideoInfo;
+
+  constructor(video: VideoInfo) {
+    this.video = video;
   }
 
-  static async getSources(video: Video): Promise<Source[]> {
-    return (await extractVideos(video.iframe_url)).map((video) => ({
+  async getSources(): Promise<Source[]> {
+    return (await extractVideos(this.video.iframe_url)).map((video) => ({
       title: video.quality.toString(),
       url: video.url,
     }));

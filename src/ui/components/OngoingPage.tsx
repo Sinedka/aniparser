@@ -21,13 +21,13 @@ function OngoingPlate(ongoing: Ongoing) {
       <div className="flip-card-back">
         <div className="flip-card-back-content">
           <h3 className="title">{ongoing.ongoingResult.title}</h3>
-          <div className="small-info">
-            <div className="episodes-badge">
-              {ongoing.ongoingResult.episodes.aired} /{" "}
-              {ongoing.ongoingResult.episodes.count || "?"}
-            </div>
-          </div>
           <p className="description">{ongoing.ongoingResult.description}</p>
+        </div>
+        <div className="small-info">
+          <div className="episodes-badge">
+            {ongoing.ongoingResult.episodes.aired} /{" "}
+            {ongoing.ongoingResult.episodes.count || "?"}
+          </div>
         </div>
       </div>
     </div>

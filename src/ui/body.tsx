@@ -84,7 +84,7 @@ export default function GetBody() {
   return (
     <>
       <Header />
-      {opened.length > 0 ? opened[opened.length - 1].render() : <OngoingPage />}
+      {opened.length > 0 ? opened[opened.length - 1].Body : <OngoingPage />}
     </>
   );
 }

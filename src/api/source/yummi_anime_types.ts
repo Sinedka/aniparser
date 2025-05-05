@@ -1,3 +1,5 @@
+import { Video } from "./Yumme_anime_ru";
+
 //Статус аниме
 export interface AnimeStatus {
   title: string;
@@ -82,7 +84,13 @@ export interface VideoData {
   player: string;
 }
 
-export interface Video {
+export interface Dubber {
+  dubbing: string;
+  player: string;
+  episodes: Video[];
+}
+
+export interface VideoInfo {
   video_id: number;
   iframe_url: string;
   data: VideoData;

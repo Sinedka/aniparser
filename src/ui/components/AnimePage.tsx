@@ -122,7 +122,7 @@ export default function AnimePage({ url }: { url: string }) {
               <div className="rating-value">{rating.toFixed(1)}</div>
             </div>
           )}
-          {animeData.episodes && animeData.episodes.length > 0 && (
+          {animeData.dubbers && animeData.dubbers.length > 0 && (
             <button
               className="watch-button"
               onClick={() => playAnime(animeData)}

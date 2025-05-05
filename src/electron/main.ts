@@ -11,11 +11,15 @@ app.whenReady().then(() => {
     },
   });
 
+  // Удаляем меню
+
+  // Открываем окно на весь экран
+  mainWindow.maximize();
+
   if (isDev()) {
     mainWindow.loadURL("http://localhost:5123");
   } else {
-    mainWindow.loadFile(
-      path.join(app.getAppPath(), "../dist-react/index.html")
-    );
+    mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
+    mainWindow.setMenu(null);
   }
 });
