@@ -1,12 +1,17 @@
+:root {
+  --bar-height: 60px;
+}
+
 .header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
+  padding: 0;
   background: var(--gradient-header);
   box-shadow: 0 4px 6px var(--shadow);
   border-bottom: 1px solid var(--border);
+  height: calc(var(--bar-height) - 1px);
 }
 
 .header-left {

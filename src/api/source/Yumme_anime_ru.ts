@@ -91,7 +91,7 @@ interface AnimeResult {
 }
 
 class YummyAnimeRuAPI {
-  private BASE_URL = "https://yummy-anime.ru/api/";
+  private BASE_URL = "https://api.yani.tv/";
 
   async apiRequest<T>(
     apiMethod: string,
@@ -237,11 +237,11 @@ export class Video {
 }
 
 export class YummyAnimeExtractor {
-  BASE_URL: string;
+  // BASE_URL: string;
   private api: YummyAnimeRuAPI;
 
   constructor() {
-    this.BASE_URL = "https://yummy-anime.ru/catalog/item/";
+    // this.BASE_URL = "https://yummy-anime.ru/catalog/item/";
     this.api = new YummyAnimeRuAPI();
   }
 

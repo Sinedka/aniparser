@@ -4,6 +4,8 @@ import { isDev } from "./utils.js";
 
 app.whenReady().then(() => {
   const mainWindow = new BrowserWindow({
+    transparent: true,
+    frame: false,
     width: 800,
     height: 600,
     webPreferences: {

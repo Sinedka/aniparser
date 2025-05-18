@@ -1,6 +1,6 @@
 import SearchPage from "./components/AnimeSearchPage";
 import AnimePage from "./components/AnimePage";
-import { Player } from "./components/player/player";
+import Player from "./components/player/player";
 import { Anime } from "../api/source/Yumme_anime_ru";
 export enum BodyType {
   Search,
@@ -24,5 +24,8 @@ export class BodyElement {
       return <SearchPage query={this.value} />;
     if (this.type === BodyType.Anime && typeof this.value === "string")
       return <AnimePage url={this.value} />;
+
+    console.warn("Неизвестный тип компонента:", this.type);
+    return <div>Контент не найден</div>;
   }
 }

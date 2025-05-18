@@ -84,7 +84,11 @@ export default function GetBody() {
   return (
     <>
       <Header />
-      {opened.length > 0 ? opened[opened.length - 1].Body : <OngoingPage />}
+      {opened.length > 0 && opened[opened.length - 1].Body ? (
+        <div className="body-content">{opened[opened.length - 1].Body}</div>
+      ) : (
+        <OngoingPage />
+      )}
     </>
   );
 }
