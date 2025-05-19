@@ -7,8 +7,6 @@ import "@videojs/http-streaming";
 import "./player.css";
 
 // Определение типов для VideoJS
-type PlayerOptions = typeof videojs.options;
-type AlsoPlayerOptions = Parameters<typeof videojs>["1"];
 type VideoJsPlayer = ReturnType<typeof videojs>;
 
 // Типы для источников видео
@@ -21,41 +19,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   const [sources, setSources] = useState<VideoSource[]>([]);
   const videoRef = React.useRef<HTMLDivElement | null>(null);
   const playerRef = React.useRef<VideoJsPlayer | null>(null);
-  // const { options, onReady } = props;
-
-  async function getSources(dubbername = "", episodeNumber = 0) {
-    const dubberT =
-      anime.dubbers.find((name) => {
-        return name.dubbing === dubbername;
-      }) || anime.dubbers[0];
-    if (!dubberT) {
-      console.error("Dubber not found");
-      return;
-    }
-
-    const episode = dubberT.episodes[episodeNumber];
-
-    if (!episode) {
-      console.error("Episode not found");
-      return;
-    }
-
-    return await episode.getSources();
-  }
-
-  useEffect(() => {
-    getSources().then((sources) => {
-      if (!sources) {
-        return;
-      }
-      setSources(
-        sources.map((source) => ({
-          src: source.url,
-          type: "application/x-mpegURL",
-        }))
-      );
-    });
-  }, []);
 
   React.useEffect(() => {
     const options = {
@@ -84,7 +47,10 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
       const player = (playerRef.current = videojs(videoElement, options, () => {
         videojs.log("player is ready");
-        // onReady && onReady(player);
+        // Добавляем селектор озвучек после инициализации плеера
+        if (voices.length > 1) {
+          dubberMenu(player);
+        }
       }));
 
       // You could update an existing player in the `else` block here
@@ -97,7 +63,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         player.src(options.sources);
       }
     }
-  }, [sources, videoRef]);
+  }, [sources, videoRef, voices]);
 
   // Dispose the Video.js player when the functional component unmounts
   React.useEffect(() => {
