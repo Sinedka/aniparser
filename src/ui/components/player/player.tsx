@@ -48,9 +48,9 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       const player = (playerRef.current = videojs(videoElement, options, () => {
         videojs.log("player is ready");
         // Добавляем селектор озвучек после инициализации плеера
-        if (voices.length > 1) {
-          dubberMenu(player);
-        }
+        // if (voices.length > 1) {
+        //   dubberMenu(player);
+        // }
       }));
 
       // You could update an existing player in the `else` block here
@@ -63,7 +63,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         player.src(options.sources);
       }
     }
-  }, [sources, videoRef, voices]);
+  }, [sources, videoRef]);
 
   // Dispose the Video.js player when the functional component unmounts
   React.useEffect(() => {
