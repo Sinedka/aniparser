@@ -1,54 +1,95 @@
-# React + TypeScript + Vite
+# AniParser
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub release](https://img.shields.io/github/release/sinedka/aniparser.svg)](https://github.com/sinedka/aniparser/releases)
+[![GitHub issues](https://img.shields.io/github/issues/sinedka/aniparser.svg)](https://github.com/sinedka/aniparser/issues)
 
-Currently, two official plugins are available:
+AniParser — это современное приложение для просмотра аниме, которое агрегирует контент с различных источников. Благодаря умному парсингу сайтов и интеграции с различными API, приложение предоставляет удобный доступ к огромной библиотеке аниме в одном месте.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Скриншоты
 
-## Expanding the ESLint configuration
+<div align="center">
+  <img src=".github/Screenshots/AnimePage.png" alt="Страница аниме" width="800"/>
+  <p><em>Страница аниме</em></p>
+  
+  <img src=".github/Screenshots/Player.png" alt="Плеер" width="800"/>
+  <p><em>Встроенный видеоплеер</em></p>
+  
+  <img src=".github/Screenshots/Search.png" alt="Поиск" width="800"/>
+  <p><em>Страница поиска</em></p>
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+  <img src=".github/Screenshots/Ongoings.png" alt="Онгоинги" width="800"/>
+  <p><em>Страница с онгоингами</em></p>
+</div>
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Основные возможности
+
+- Поддержка различных источников контента
+  - Интеграция с Yummi-anime
+  - Планируется добавление новых источников
+- Встроенные видеоплееры
+  - Поддержка Kodik плеера
+  - Планируется добавление новых плееров
+- Поиск по всем подключенным источникам
+- Отображение онгоингов
+- Адаптивный пользовательский интерфейс
+
+## Технические детали
+
+Проект разработан с использованием современного стека технологий:
+
+- **Electron** — для создания кроссплатформенного десктопного приложения
+- Вбран вместо Tauri из-за лучшей поддержки HLS в WebKit
+- **React** — для построения отзывчивого пользовательского интерфейса
+- **TypeScript** — для обеспечения типобезопасности и улучшения поддерживаемости кода
+- **Vite** — для быстрой разработки и оптимизированной сборки
+
+## Установка
+
+#### Arch Linux
+
+```bash
+yay -S aniparser
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+#### Другие системы
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Скачайте последнюю версию приложения со [страницы релизов](https://github.com/sinedka/aniparser/releases)
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## TODO
+
+#### Основной функционал
+
+- [ ] Добавить поддержку новых источников аниме
+  - [ ] AniLibria
+  - [ ] SovetRomantica
+  - [ ] AnimeGO
+- [ ] Интегрировать дополнительные видеоплееры
+  - [ ] Sibnet
+  - [ ] Alloha
+
+#### Улучшения интерфейса
+
+- [ ] Переделать интерфейс в Spotify стиль
+- [ ] Темная/светлая тема
+- [ ] Кастомизация интерфейса
+- [ ] Поддержка горячих клавиш
+- [ ] Улучшенные фильтры поиска
+
+#### Технические улучшения
+
+- [ ] Добавить возможность Загрузки аниме и просмотра офлайн
+
+## Contributing
+
+Мы всегда рады вкладу в развитие проекта! Если вы хотите помочь:
+
+1. Форкните репозиторий
+2. Создайте ветку для ваших изменений
+3. Для масштабных изменений сначала создайте issue или обсуждение
+4. Убедитесь, что ваш код соответствует стилю проекта
+5. Сделайте pull request с подробным описанием изменений
+
+## License
+
+Проект распространяется под лицензией MIT. Подробности смотрите в файле [LICENSE](LICENSE).
