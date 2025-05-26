@@ -4,6 +4,8 @@
 [![GitHub release](https://img.shields.io/github/release/sinedka/aniparser.svg)](https://github.com/sinedka/aniparser/releases)
 [![GitHub issues](https://img.shields.io/github/issues/sinedka/aniparser.svg)](https://github.com/sinedka/aniparser/issues)
 
+> ⚠️ **Внимание**: Проект находится в бета-версии. Некоторые функции могут работать нестабильно или быть недоступны. Если вы обнаружили баг, пожалуйста, создайте issue в репозитории.
+
 AniParser — это современное приложение для просмотра аниме, которое агрегирует контент с различных источников. Благодаря умному парсингу сайтов и интеграции с различными API, приложение предоставляет удобный доступ к огромной библиотеке аниме в одном месте.
 
 ## Скриншоты

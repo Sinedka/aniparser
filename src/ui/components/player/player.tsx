@@ -1,5 +1,5 @@
 import { Anime } from "../../../api/source/Yumme_anime_ru";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState } from "react";
 import { VideoIDs } from "./types";
 import React from "react";
 import videojs from "video.js";
@@ -8,6 +8,7 @@ import "@videojs/http-streaming";
 import "@silvermine/videojs-quality-selector/dist/css/quality-selector.css";
 import "./player.css";
 import PlayerControls from "./PlayerControls";
+import SkipButton from "./SkipButton";
 
 // Импорт плагина качества видео для TypeScript
 // @ts-ignore - для обхода проблем типизации внешнего плагина
@@ -46,23 +47,24 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   // Устанавливаем текущий эпизод
   React.useEffect(() => {
     // Получаем источники видео из аниме
-    anime.players[videoParams.player].dubbers[videoParams.dubber].episodes[
-      videoParams.episode
-    ]
-      .getSources()
-      .then((sources) => {
-        // Создаем источники с метками качества
-        const videoSources = sources.map((source, index) => {
-          return {
-            src: source.url,
-            type: "application/x-mpegURL", // TODO: Определять правильный тип
-            label: source.title,
-            selected: index === sources.length - 1,
-          };
-        });
-        setSources(videoSources);
+    const currentEpisode =
+      anime.players[videoParams.player].dubbers[videoParams.dubber].episodes[
+        videoParams.episode
+      ];
+
+    currentEpisode.getSources().then((sources) => {
+      // Создаем источники с метками качества
+      const videoSources = sources.map((source, index) => {
+        return {
+          src: source.url,
+          type: "application/x-mpegURL", // TODO: Определять правильный тип
+          label: source.title,
+          selected: index === sources.length - 1,
+        };
       });
-  }, [videoParams]);
+      setSources(videoSources);
+    });
+  }, [videoParams, anime]);
 
   // Получаем источники видео из аниме
   React.useEffect(() => {
@@ -88,7 +90,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       },
     };
 
-    console.log(sources);
     // Make sure Video.js player is only initialized once
     if (!playerRef.current) {
       // The Video.js player needs to be _inside_ the component el for React 18 Strict Mode.
@@ -101,12 +102,9 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       videoElement.classList.add("vjs-big-play-centered");
       videoRef.current.appendChild(videoElement);
 
-      const player = (playerRef.current = videojs(videoElement, options, () => {
+      playerRef.current = videojs(videoElement, options, () => {
         videojs.log("player is ready");
-      }));
-
-      // You could update an existing player in the `else` block here
-      // on prop change, for example:
+      });
     } else {
       const player = playerRef.current;
 
@@ -132,12 +130,19 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
     <div className="video-container" data-vjs-player ref={playerContainerRef}>
       <div ref={videoRef} className="video-container" />
       {playerRef.current && (
-        <PlayerControls
-          player={playerRef.current}
-          SetVideoParams={setVideoParams}
-          videoParams={videoParams}
-          anime={anime}
-        />
+        <>
+          <SkipButton
+            player={playerRef.current}
+            anime={anime}
+            videoParams={videoParams}
+          />
+          <PlayerControls
+            player={playerRef.current}
+            SetVideoParams={setVideoParams}
+            videoParams={videoParams}
+            anime={anime}
+          />
+        </>
       )}
     </div>
   );

@@ -7,7 +7,7 @@
 .select-selected {
   background-color: rgba(43, 51, 63, 0.7);
   color: white;
-  padding: 8px 12px;
+  padding: 10px 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   cursor: pointer;
@@ -15,6 +15,7 @@
   justify-content: space-between;
   align-items: center;
   transition: background-color 0.2s ease;
+  font-size: 16px;
 }
 
 .select-selected:hover {
@@ -23,10 +24,10 @@
 
 .arrow {
   border: solid white;
-  border-width: 0 2px 2px 0;
+  border-width: 0 3px 3px 0;
   display: inline-block;
-  padding: 3px;
-  margin-left: 8px;
+  padding: 4px;
+  margin-left: 10px;
   transition: transform 0.2s ease;
 }
 
@@ -47,16 +48,17 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   margin-top: 4px;
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
   z-index: 1000;
 }
 
 .select-option {
-  padding: 8px 12px;
+  padding: 10px 16px;
   cursor: pointer;
   color: white;
   transition: background-color 0.2s ease;
+  font-size: 16px;
 }
 
 .select-option:hover {

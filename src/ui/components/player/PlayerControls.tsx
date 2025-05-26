@@ -3,6 +3,7 @@ import { Anime } from "../../../api/source/Yumme_anime_ru";
 import { VideoIDs } from "./types";
 import "./playerControls.css";
 import CustomSelect from "./CustomSelect";
+import ReactDOM from "react-dom";
 
 type PlayerControlsProps = {
   player: any;
@@ -101,7 +102,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     label: `Эпизод ${episode.video.number}`,
   }));
 
-  return (
+  const controls = (
     <div ref={controlsRef} className="player-custom-controls">
       <CustomSelect
         ref={playerSelectRef}
@@ -132,6 +133,12 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
       />
     </div>
   );
+
+  // Получаем элемент плеера
+  const playerEl = player.el();
+
+  // Рендерим элементы управления внутри плеера для корректной работы в полноэкранном режиме
+  return ReactDOM.createPortal(controls, playerEl);
 };
 
 export default PlayerControls;
