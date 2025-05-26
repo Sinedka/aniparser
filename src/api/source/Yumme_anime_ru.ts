@@ -26,7 +26,10 @@ interface Source {
   title: string;
   url: string;
 }
-
+interface Player {
+  name: string;
+  dubbers: Dubber[];
+}
 interface EpisodeData {
   title: string;
   num: number;
@@ -184,37 +187,50 @@ export class Ongoing {
 
 export class Anime {
   public animeResult: AnimeResult;
-  public dubbers: Dubber[];
+  public players: Player[];
   constructor(animeResult: AnimeResult) {
     this.animeResult = animeResult;
-    this.dubbers = this.getDubbers();
+    this.players = this.getPlayers();
   }
 
-  getDubbers(): Dubber[] {
-    const t: Record<string, Dubber> = {};
+  getPlayers(): Player[] {
+    const t: Record<string, Player> = {};
     this.animeResult.videos.forEach((video) => {
-      if (video.iframe_url.startsWith("//")) {
+      if (video.iframe_url.startsWith("//"))
         video.iframe_url = "https:" + video.iframe_url;
+
+      if (typeof findExtractor(video.iframe_url) == "undefined") return;
+
+      if (!t[video.data.player]) {
+        t[video.data.player] = {
+          name: video.data.player,
+          dubbers: [],
+        };
       }
-      if (typeof findExtractor(video.iframe_url) == "undefined") {
-        return;
-      }
-      if (!t[video.data.dubbing]) {
-        t[video.data.dubbing] = {
+      var dubberNow = t[video.data.player].dubbers.find(
+        (d) => d.dubbing === video.data.dubbing
+      );
+      if (!dubberNow) {
+        dubberNow = {
           dubbing: video.data.dubbing,
           player: video.data.player,
-          episodes: [new Video(video)],
+          episodes: [],
         };
-      } else {
-        if (typeof findExtractor(video.iframe_url) != "undefined") {
-          t[video.data.dubbing].episodes.push(new Video(video));
-        }
+
+        t[video.data.player].dubbers.push(dubberNow);
       }
+      t[video.data.player].dubbers.forEach((d) => {
+        if (d.dubbing === video.data.dubbing) {
+          d.episodes.push(new Video(video));
+        }
+      });
     });
     const ans = Object.values(t);
-    ans.forEach((dubber) => {
-      dubber.episodes.sort((a, b) => {
-        return Number(a.video.number) - Number(b.video.number);
+    ans.forEach((player) => {
+      player.dubbers.forEach((dubber) => {
+        dubber.episodes.sort((a, b) => {
+          return Number(a.video.number) - Number(b.video.number);
+        });
       });
     });
     return ans;

@@ -1,0 +1,13 @@
+/* Стили для пользовательских элементов управления */
+.player-custom-controls {
+  position: absolute;
+  top: -2px; /* Позиционируем ближе к краю для полного скрытия */
+  left: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 10px;
+  opacity: 1; /* Всегда видимый */
+  transform: translateY(0);
+  transition: transform 0.3s ease-out;
+  padding-top: 12px; /* Добавляем отступ, чтобы визуально кнопка оставалась на той же позиции */
+}

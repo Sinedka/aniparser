@@ -1,10 +1,17 @@
 import { Anime } from "../../../api/source/Yumme_anime_ru";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
+import { VideoIDs } from "./types";
 import React from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
+import "@silvermine/videojs-quality-selector/dist/css/quality-selector.css";
 import "./player.css";
+import PlayerControls from "./PlayerControls";
+
+// Импорт плагина качества видео для TypeScript
+// @ts-ignore - для обхода проблем типизации внешнего плагина
+import qualitySelector from "@silvermine/videojs-quality-selector";
 
 // Определение типов для VideoJS
 type VideoJsPlayer = ReturnType<typeof videojs>;
@@ -13,16 +20,54 @@ type VideoJsPlayer = ReturnType<typeof videojs>;
 interface VideoSource {
   src: string;
   type: string;
+  label?: string;
+  selected?: boolean;
 }
 
 function Player({ anime }: { anime: Anime }): React.ReactElement {
   const [sources, setSources] = useState<VideoSource[]>([]);
   const videoRef = React.useRef<HTMLDivElement | null>(null);
   const playerRef = React.useRef<VideoJsPlayer | null>(null);
+  const [videoParams, setVideoParams] = useState<VideoIDs>({
+    player: 0,
+    dubber: 0,
+    episode: 0,
+  });
+  const playerContainerRef = useRef<HTMLDivElement>(null);
 
+  // Регистрация плагина качества
+  React.useEffect(() => {
+    // Регистрируем плагин качества только один раз
+    if (qualitySelector && !videojs.getPlugin("qualitySelector")) {
+      qualitySelector(videojs);
+    }
+  }, []);
+
+  // Устанавливаем текущий эпизод
+  React.useEffect(() => {
+    // Получаем источники видео из аниме
+    anime.players[videoParams.player].dubbers[videoParams.dubber].episodes[
+      videoParams.episode
+    ]
+      .getSources()
+      .then((sources) => {
+        // Создаем источники с метками качества
+        const videoSources = sources.map((source, index) => {
+          return {
+            src: source.url,
+            type: "application/x-mpegURL", // TODO: Определять правильный тип
+            label: source.title,
+            selected: index === sources.length - 1,
+          };
+        });
+        setSources(videoSources);
+      });
+  }, [videoParams]);
+
+  // Получаем источники видео из аниме
   React.useEffect(() => {
     const options = {
-      autoplay: false,
+      autoplay: true,
       controls: true,
       responsive: true,
       fluid: false,
@@ -30,6 +75,17 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       aspectRatio: "16:9",
       playbackRates: [0.5, 1, 1.5, 2],
       sources: sources,
+      controlBar: {
+        children: [
+          "playToggle",
+          "volumePanel",
+          "progressControl",
+          "playbackRateMenuButton",
+          "qualitySelector",
+          "pictureInPictureToggle",
+          "fullscreenToggle",
+        ],
+      },
     };
 
     console.log(sources);
@@ -47,10 +103,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
       const player = (playerRef.current = videojs(videoElement, options, () => {
         videojs.log("player is ready");
-        // Добавляем селектор озвучек после инициализации плеера
-        // if (voices.length > 1) {
-        //   dubberMenu(player);
-        // }
       }));
 
       // You could update an existing player in the `else` block here
@@ -59,7 +111,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       const player = playerRef.current;
 
       if (player) {
-        player.autoplay(options.autoplay);
         player.src(options.sources);
       }
     }
@@ -78,8 +129,16 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   }, [playerRef]);
 
   return (
-    <div className="video-container" data-vjs-player>
+    <div className="video-container" data-vjs-player ref={playerContainerRef}>
       <div ref={videoRef} className="video-container" />
+      {playerRef.current && (
+        <PlayerControls
+          player={playerRef.current}
+          SetVideoParams={setVideoParams}
+          videoParams={videoParams}
+          anime={anime}
+        />
+      )}
     </div>
   );
 }

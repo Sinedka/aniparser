@@ -33,7 +33,7 @@ function loadWatchProgress(animeUrl: string): WatchProgress | null {
 
 export default function AnimePage({ url }: { url: string }) {
   const [savedProgress, setSavedProgress] = useState<WatchProgress | null>(
-    null
+    null,
   );
 
   const [animeData, setAnimeData] = useState<Anime | null>(null);
@@ -122,7 +122,7 @@ export default function AnimePage({ url }: { url: string }) {
               <div className="rating-value">{rating.toFixed(1)}</div>
             </div>
           )}
-          {animeData.dubbers && animeData.dubbers.length > 0 && (
+          {animeData.players && animeData.players.length > 0 && (
             <button
               className="watch-button"
               onClick={() => playAnime(animeData)}

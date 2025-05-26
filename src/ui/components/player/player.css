@@ -1,6 +1,8 @@
 .video-container {
   width: 100vw;
-  height: calc(100vh - 67px);
+  height: calc(100vh - var(--bar-height));
+  position: relative;
+  overflow: hidden;
 }
 
 .video-js {
@@ -13,4 +15,16 @@
 
 .video-js .vjs-tech {
   object-fit: contain;
+}
+
+/* Переопределяем анимацию для панели управления VideoJS */
+.video-js .vjs-control-bar {
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out !important;
+  transform: translateY(0);
+}
+
+/* Когда плеер неактивен, плавно перемещаем панель вниз */
+.video-js.vjs-user-inactive:not(.vjs-paused) .vjs-control-bar {
+  transform: translateY(100%);
+  opacity: 0;
 }
