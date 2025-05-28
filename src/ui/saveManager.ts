@@ -17,13 +17,6 @@ const DEFAULT_SETTINGS: PlayerSettings = {
   isMuted: false,
 };
 
-const DEFAULT_ANIME_PROGRESS: AnimeSaveData = {
-  player: 0,
-  dubber: 0,
-  episode: 0,
-  time: 0,
-};
-
 const SETTINGS_KEY = "player_settings";
 const ANIME_PROGRESS_KEY = "anime_progress";
 
@@ -31,23 +24,23 @@ export class SaveManager {
   private static settings: PlayerSettings = DEFAULT_SETTINGS;
   private static animeProgress: Record<string, AnimeSaveData> = {};
 
-  static initialize(): void {
-    const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    if (savedSettings) {
-      try {
-        this.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) };
-      } catch {
-        this.settings = DEFAULT_SETTINGS;
-      }
-    }
+  static {
+    this.initialize();
+  }
 
-    const savedProgress = localStorage.getItem(ANIME_PROGRESS_KEY);
-    if (savedProgress) {
-      try {
-        this.animeProgress = JSON.parse(savedProgress);
-      } catch {
-        this.animeProgress = {};
+  private static initialize(): void {
+    try {
+      const savedSettings = localStorage.getItem(SETTINGS_KEY);
+      if (savedSettings) {
+        this.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) };
       }
+
+      const savedProgress = localStorage.getItem(ANIME_PROGRESS_KEY);
+      if (savedProgress) {
+        this.animeProgress = JSON.parse(savedProgress);
+      }
+    } catch (error) {
+      console.error("Error loading saved data:", error);
     }
   }
 
@@ -88,8 +81,8 @@ export class SaveManager {
     }
   }
 
-  static getAnimeProgress(url: string): AnimeSaveData | null {
-    return this.animeProgress[url] || DEFAULT_ANIME_PROGRESS;
+  static getAnimeProgress(url: string): AnimeSaveData | undefined {
+    return this.animeProgress[url] || undefined;
   }
 
   static getAllAnimeProgress(): Record<string, AnimeSaveData> {

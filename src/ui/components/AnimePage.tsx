@@ -4,38 +4,11 @@ import { YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
 import { playAnime, openAnimePage } from "../body";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "./LoadingSpinner";
+import { SaveManager } from "../saveManager";
 
 // Интерфейс для хранения прогресса просмотра
-interface WatchProgress {
-  animeUrl: string;
-  episodeIndex: number;
-  currentTime: number;
-  dubbing: string;
-  lastWatched: number;
-  playbackSpeed: number;
-}
-
-// Функция для загрузки прогресса просмотра
-function loadWatchProgress(animeUrl: string): WatchProgress | null {
-  try {
-    const savedProgressList = localStorage.getItem("watchProgress");
-    if (!savedProgressList) return null;
-
-    const progressList: WatchProgress[] = JSON.parse(savedProgressList);
-    const progress = progressList.find((p) => p.animeUrl === animeUrl);
-
-    return progress || null;
-  } catch (error) {
-    console.error("Ошибка при загрузке прогресса:", error);
-    return null;
-  }
-}
 
 export default function AnimePage({ url }: { url: string }) {
-  const [savedProgress, setSavedProgress] = useState<WatchProgress | null>(
-    null,
-  );
-
   const [animeData, setAnimeData] = useState<Anime | null>(null);
 
   useEffect(() => {
@@ -43,14 +16,6 @@ export default function AnimePage({ url }: { url: string }) {
     const extractor = new YummyAnimeExtractor();
     extractor.getAnime(url).then((anime) => setAnimeData(anime));
   }, [url]);
-
-  //Загружаем сохраненный прогресс
-  useEffect(() => {
-    if (animeData && animeData.animeResult && animeData.animeResult.anime_url) {
-      const progress = loadWatchProgress(animeData.animeResult.anime_url);
-      setSavedProgress(progress);
-    }
-  }, [animeData]);
 
   if (!animeData) return <LoadingSpinner />;
 
@@ -71,8 +36,11 @@ export default function AnimePage({ url }: { url: string }) {
 
   // Текст для кнопки в зависимости от наличия сохранения
   const getWatchButtonText = () => {
+    const savedProgress = SaveManager.getAnimeProgress(
+      animeData.animeResult.anime_url,
+    );
     if (savedProgress) {
-      return `Продолжить просмотр с ${savedProgress.episodeIndex + 1} серии`;
+      return `Продолжить просмотр с ${savedProgress.episode + 1} серии`;
     } else {
       return "Начать просмотр";
     }
