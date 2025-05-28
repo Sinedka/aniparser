@@ -25,12 +25,12 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
       onActiveChange,
       closeOnRefs = [],
     },
-    ref
+    ref,
   ) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isHover, setIsHover] = useState(false);
     const selectRef = useRef<HTMLDivElement>(null);
-    const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+    const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
     const selectedOption = options.find((option) => option.value === value);
 
@@ -75,7 +75,6 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
     // Обработка кликов для закрытия селекта
     useEffect(() => {
       const handleClick = (event: MouseEvent) => {
-        console.log(closeOnRefs);
         const target = event.target as Node;
 
         // Проверяем, был ли клик по одному из переданных элементов
@@ -83,7 +82,7 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
           (ref) =>
             ref.current &&
             ref.current.contains(target) &&
-            ref.current !== selectRef.current
+            ref.current !== selectRef.current,
         );
 
         if (clickedOnCloseElement) closeSelect();
@@ -134,7 +133,7 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 export default CustomSelect;

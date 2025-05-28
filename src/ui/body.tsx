@@ -26,7 +26,6 @@ export default function GetBody() {
         opened[opened.length - 1].type != BodyType.Anime ||
         opened[opened.length - 1].value != url
       ) {
-        console.log(opened[opened.length - 1]?.value, url, current);
         opened.push(new BodyElement(BodyType.Anime, url));
         setCurrent(opened[opened.length - 1]);
       }
