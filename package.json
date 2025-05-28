@@ -2,6 +2,10 @@
   "name": "aniparser",
   "private": true,
   "version": "0.2.0",
+  "author": {
+    "name": "sinedka",
+    "email": "dennnn888@gmail.com"
+  },
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {

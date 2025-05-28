@@ -11,7 +11,7 @@
   },
   "linux": {
     "icon": "public/icon.png",
-    "target": ["AppImage", "tar.gz", "deb"],
+    "target": ["AppImage", "tar.gz"],
     "category": "Utility"
   }
 }
