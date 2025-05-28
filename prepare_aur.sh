@@ -20,20 +20,6 @@ cp "${BUILD_DIR}/${PROJECT_NAME}-${VERSION}.tar.gz" aur/
 # Переходим в директорию AUR
 cd aur
 
-rm -rf ${PROJECT_NAME}-${VERSION}
-mkdir ${PROJECT_NAME}-${VERSION}
-cd ${PROJECT_NAME}-${VERSION}
-
-pwd
-
-cp -r ../../dist-electron/ .
-cp -r ../../dist-react/ .
-
-tar -czvf ../${PROJECT_NAME}-${VERSION}.tar.gz .
-cd ..
-
-rm -rf ${PROJECT_NAME}-${VERSION}
-
 # Обновляем версию в PKGBUILD если необходимо
 sed -i "s/pkgver=.*/pkgver=${VERSION}/" PKGBUILD
 
