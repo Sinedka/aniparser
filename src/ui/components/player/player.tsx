@@ -35,11 +35,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
-  // Инициализация SaveManager при монтировании компонента
-  useEffect(() => {
-    SaveManager.initialize();
-  }, []);
-
   // Регистрация плагина качества
   React.useEffect(() => {
     // Регистрируем плагин качества только один раз
@@ -51,7 +46,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   //Получаем VideoParams
   React.useEffect(() => {
     const savedVideoParams = SaveManager.getAnimeProgress(
-      anime.animeResult.anime_url
+      anime.animeResult.anime_url,
     );
     if (savedVideoParams) {
       setVideoParams({
@@ -90,7 +85,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       });
       setSources(videoSources);
       const oldParams = SaveManager.getAnimeProgress(
-        anime.animeResult.anime_url
+        anime.animeResult.anime_url,
       );
       if (
         oldParams?.dubber != videoParams.dubber ||
@@ -159,7 +154,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
               ) {
                 player.currentTime(
                   SaveManager.getAnimeProgress(anime.animeResult.anime_url)
-                    ?.time || 0
+                    ?.time || 0,
                 );
               }
             });
@@ -224,10 +219,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
       progressInterval.current = setInterval(SaveTimeNotPaused, 10000);
     }
-
-    return () => {
-      setIsPlayerReady(false);
-    };
   }, [sources, videoRef]);
 
   // Dispose the Video.js player when the functional component unmounts

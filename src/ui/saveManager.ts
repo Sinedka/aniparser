@@ -31,25 +31,25 @@ export class SaveManager {
   private static settings: PlayerSettings = DEFAULT_SETTINGS;
   private static animeProgress: Record<string, AnimeSaveData> = {};
 
-  static initialize(): void {
-    const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    if (savedSettings) {
-      try {
-        this.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) };
-      } catch {
-        this.settings = DEFAULT_SETTINGS;
-      }
-    }
+  // static initialize(): void {
+  //   const savedSettings = localStorage.getItem(SETTINGS_KEY);
+  //   if (savedSettings) {
+  //     try {
+  //       this.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) };
+  //     } catch {
+  //       this.settings = DEFAULT_SETTINGS;
+  //     }
+  //   }
 
-    const savedProgress = localStorage.getItem(ANIME_PROGRESS_KEY);
-    if (savedProgress) {
-      try {
-        this.animeProgress = JSON.parse(savedProgress);
-      } catch {
-        this.animeProgress = {};
-      }
-    }
-  }
+  //   const savedProgress = localStorage.getItem(ANIME_PROGRESS_KEY);
+  //   if (savedProgress) {
+  //     try {
+  //       this.animeProgress = JSON.parse(savedProgress);
+  //     } catch {
+  //       this.animeProgress = {};
+  //     }
+  //   }
+  // }
 
   static saveSettings(settings: Partial<PlayerSettings>): void {
     this.settings = { ...this.settings, ...settings };
@@ -88,7 +88,7 @@ export class SaveManager {
     }
   }
 
-  static getAnimeProgress(url: string): AnimeSaveData | null {
+  static getAnimeProgress(url: string): AnimeSaveData {
     return this.animeProgress[url] || DEFAULT_ANIME_PROGRESS;
   }
 
