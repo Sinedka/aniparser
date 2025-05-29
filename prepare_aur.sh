@@ -13,10 +13,6 @@ VERSION=$(grep '"version":' package.json | cut -d'"' -f4)
 
 echo -e "${BLUE}Preparing AUR package for ${PROJECT_NAME} version ${VERSION}${NC}"
 
-# Копируем новый архив в AUR репозиторий
-echo -e "${BLUE}Updating AUR package...${NC}"
-cp "${BUILD_DIR}/${PROJECT_NAME}-${VERSION}.tar.gz" aur/
-
 # Переходим в директорию AUR
 cd aur
 

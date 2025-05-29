@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import path from "path";
-import * as isDev from "electron-is-dev";
+import { isDev } from "./utils.js";
 
 app.whenReady().then(() => {
   const mainWindow = new BrowserWindow({
