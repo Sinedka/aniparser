@@ -54,7 +54,7 @@ const SkipButton: React.FC<SkipButtonProps> = ({
       setSkipButtonHidden(true);
       handleHideButton();
     },
-    [handleHideButton]
+    [handleHideButton],
   );
 
   // Обработчик времени для показа/скрытия кнопки пропуска
@@ -116,6 +116,26 @@ const SkipButton: React.FC<SkipButtonProps> = ({
       clearTimeout(exitTimeoutRef.current);
     }
   }, [videoParams]);
+
+  // Добавляем обработчик клавиш
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (!player) return;
+      switch (event.code) {
+        case "Enter":
+          event.preventDefault();
+          if (showSkipButton && !isExiting) {
+            handleSkip();
+          }
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress, true);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [player, showSkipButton, isExiting, handleSkip]);
 
   if (!showSkipButton && !isExiting) {
     return null;

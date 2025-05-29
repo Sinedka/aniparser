@@ -79,6 +79,89 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     };
   }, [player]);
 
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const COMMA_KEY = 188; // Код клавиши ","
+      const DOT_KEY = 190; // Код клавиши "."
+
+      const currentEpisodes =
+        anime.players[videoParams.player].dubbers[videoParams.dubber].episodes;
+      const maxEpisodes = currentEpisodes.length - 1;
+      const currentDubbers = anime.players[videoParams.player].dubbers;
+      const maxDubbers = currentDubbers.length - 1;
+      const maxPlayers = anime.players.length - 1;
+
+      // Используем which вместо keyCode для более надежной работы с модификаторами
+      const keyPressed = event.which;
+
+      if (event.ctrlKey) {
+        // Переключение плеера
+        if (keyPressed === DOT_KEY) {
+          // Следующий плеер
+          const nextPlayer = Math.min(videoParams.player + 1, maxPlayers);
+          if (nextPlayer !== videoParams.player) {
+            handlePlayerChange(nextPlayer);
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        } else if (keyPressed === COMMA_KEY) {
+          // Предыдущий плеер
+          const prevPlayer = Math.max(videoParams.player - 1, 0);
+          if (prevPlayer !== videoParams.player) {
+            handlePlayerChange(prevPlayer);
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      } else if (event.shiftKey) {
+        // Переключение озвучки
+        if (keyPressed === DOT_KEY) {
+          // Следующая озвучка
+          const nextDubber = Math.min(videoParams.dubber + 1, maxDubbers);
+          if (nextDubber !== videoParams.dubber) {
+            handleDubberChange(nextDubber);
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        } else if (keyPressed === COMMA_KEY) {
+          // Предыдущая озвучка
+          const prevDubber = Math.max(videoParams.dubber - 1, 0);
+          if (prevDubber !== videoParams.dubber) {
+            handleDubberChange(prevDubber);
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      } else {
+        // Переключение эпизодов
+        if (keyPressed === DOT_KEY) {
+          // Следующий эпизод
+          const nextEpisode = Math.min(videoParams.episode + 1, maxEpisodes);
+          if (nextEpisode !== videoParams.episode) {
+            handleEpisodeChange(nextEpisode);
+          }
+        } else if (keyPressed === COMMA_KEY) {
+          // Предыдущий эпизод
+          const prevEpisode = Math.max(videoParams.episode - 1, 0);
+          if (prevEpisode !== videoParams.episode) {
+            handleEpisodeChange(prevEpisode);
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress, true);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress, true);
+    };
+  }, [
+    videoParams,
+    anime,
+    handlePlayerChange,
+    handleDubberChange,
+    handleEpisodeChange,
+  ]);
+
   if (!anime?.players?.length) {
     return null;
   }
@@ -92,7 +175,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     (dubber, index) => ({
       value: index,
       label: dubber.dubbing,
-    })
+    }),
   );
 
   const EpisodeSelectOptions = anime.players[videoParams.player].dubbers[

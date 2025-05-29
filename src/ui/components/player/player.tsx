@@ -1,5 +1,5 @@
 import { Anime } from "../../../api/source/Yumme_anime_ru";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { VideoIDs } from "./types";
 import React from "react";
 import videojs from "video.js";
@@ -10,6 +10,8 @@ import "./player.css";
 import PlayerControls from "./PlayerControls";
 import SkipButton from "./SkipButton";
 import { SaveManager } from "../../saveManager";
+import ActionIcon, { ActionType } from "./ActionIcon";
+import KeymapButton from "./KeymapButton";
 
 // Импорт плагина качества видео для TypeScript
 // @ts-ignore - для обхода проблем типизации внешнего плагина
@@ -27,13 +29,17 @@ interface VideoSource {
 }
 
 function Player({ anime }: { anime: Anime }): React.ReactElement {
-  const [sources, setSources] = useState<VideoSource[]>([]);
+  //PlayerRef
   const videoRef = React.useRef<HTMLDivElement | null>(null);
   const playerRef = React.useRef<VideoJsPlayer | null>(null);
-  const [videoParams, setVideoParams] = useState<VideoIDs | null>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
+
+  const [sources, setSources] = useState<VideoSource[]>([]);
+  const [videoParams, setVideoParams] = useState<VideoIDs | null>(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [currentAction, setCurrentAction] = useState<ActionType | null>(null);
+  const [actionTimestamp, setActionTimestamp] = useState<number>(0);
 
   // Регистрация плагина качества
   React.useEffect(() => {
@@ -106,6 +112,22 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   React.useEffect(() => {
     const settings = SaveManager.getSettings();
 
+    //setting focus on player
+    const activeElement = document.activeElement;
+    if (
+      !(
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLSelectElement
+      )
+    ) {
+      (
+        videoRef.current?.querySelector(
+          ".video-js .vjs-tech",
+        ) as HTMLVideoElement
+      )?.focus();
+    }
+
     const options = {
       autoplay: true,
       controls: true,
@@ -134,45 +156,170 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
       if (!videoRef.current) return;
 
-      videoElement.classList.add("vjs-big-play-centered");
+      // videoElement.classList.add("vjs-big-play-centered");
       videoRef.current.appendChild(videoElement);
 
       playerRef.current = videojs(videoElement, options, () => {
         const player = playerRef.current;
-        if (player) {
-          player.ready(() => {
-            setIsPlayerReady(true);
-            // Устанавливаем громкость и состояние mute
-            player.volume(settings.volume);
-            player.muted(settings.isMuted);
+        if (!player) return;
+        player.ready(() => {
+          setIsPlayerReady(true);
+          function handleGlobalHotkeys(e: KeyboardEvent): void {
+            if (!player) return;
+            function isTyping(element: EventTarget | null): boolean {
+              if (!element) return false;
 
-            // Устанавливаем скорость после загрузки метаданных
-            player.one("loadedmetadata", () => {
-              player.playbackRate(settings.playbackSpeed);
               if (
-                SaveManager.getAnimeProgress(anime.animeResult.anime_url)?.time
+                element instanceof HTMLInputElement ||
+                element instanceof HTMLTextAreaElement
               ) {
-                player.currentTime(
-                  SaveManager.getAnimeProgress(anime.animeResult.anime_url)
-                    ?.time || 0,
-                );
+                return true;
               }
-            });
 
-            // Добавляем слушатели событий
-            player.on("ratechange", () => {
-              const newRate = player.playbackRate();
-              newRate != null && SaveManager.setPlaybackSpeed(newRate);
-            });
+              return false;
+            }
 
-            player.on("volumechange", () => {
-              const newVolume = player.volume();
-              const isMuted = player.muted();
-              newVolume != null && SaveManager.setVolume(newVolume);
-              isMuted != null && SaveManager.setMuted(isMuted);
-            });
+            if (isTyping(document.activeElement)) return;
+
+            const updateAction = (action: ActionType) => {
+              setCurrentAction(action);
+              setActionTimestamp(Date.now());
+            };
+
+            switch (e.code) {
+              case "Space":
+              case "KeyK":
+                e.preventDefault();
+                if (player.paused()) {
+                  updateAction("play");
+                  player.play();
+                } else {
+                  updateAction("pause");
+                  player.pause();
+                }
+                break;
+              case "KeyJ":
+                e.preventDefault();
+                const currentTimeBack = player.currentTime();
+                if (typeof currentTimeBack === "number") {
+                  updateAction("backward");
+                  player.currentTime(Math.max(currentTimeBack - 5, 0));
+                }
+                break;
+              case "KeyL":
+                e.preventDefault();
+                const currentTimeForward = player.currentTime();
+                if (typeof currentTimeForward === "number") {
+                  updateAction("forward");
+                  player.currentTime(currentTimeForward + 5);
+                }
+                break;
+              case "KeyF":
+                e.preventDefault();
+                if (
+                  player.isFullscreen &&
+                  player.requestFullscreen &&
+                  player.exitFullscreen
+                ) {
+                  if (player.isFullscreen()) {
+                    player.exitFullscreen();
+                  } else {
+                    player.requestFullscreen();
+                  }
+                }
+                break;
+              case "KeyM":
+                e.preventDefault();
+                const isMuted = player.muted();
+                if (typeof isMuted === "boolean") {
+                  updateAction(isMuted ? "unmute" : "mute");
+                  player.muted(!isMuted);
+                }
+                break;
+              case "ArrowUp":
+                e.preventDefault();
+                const currentVolume = player.volume();
+                if (typeof currentVolume === "number") {
+                  updateAction("volumeUp");
+                  player.volume(Math.min(currentVolume + 0.1, 1));
+                }
+                break;
+              case "ArrowDown":
+                e.preventDefault();
+                const newVolume = player.volume();
+                if (typeof newVolume === "number") {
+                  updateAction("volumeDown");
+                  player.volume(Math.max(newVolume - 0.1, 0));
+                }
+                break;
+              case "ArrowLeft":
+                e.preventDefault();
+                const timeLeft = player.currentTime();
+                if (typeof timeLeft === "number") {
+                  updateAction("backward");
+                  player.currentTime(Math.max(timeLeft - 5, 0));
+                }
+                break;
+              case "ArrowRight":
+                e.preventDefault();
+                const timeRight = player.currentTime();
+                if (typeof timeRight === "number") {
+                  updateAction("forward");
+                  player.currentTime(timeRight + 5);
+                }
+                break;
+              case "BracketLeft":
+                e.preventDefault();
+                const currentRate = player.playbackRate();
+                if (typeof currentRate === "number") {
+                  updateAction("speedDown");
+                  player.playbackRate(Math.max(currentRate - 0.25, 0.5));
+                }
+                break;
+              case "BracketRight":
+                e.preventDefault();
+                const newRate = player.playbackRate();
+                if (typeof newRate === "number") {
+                  updateAction("speedUp");
+                  player.playbackRate(Math.min(newRate + 0.25, 2));
+                }
+                break;
+            }
+          }
+
+          // Добавляем слушатель глобальных горячих клавиш
+          document.addEventListener("keydown", handleGlobalHotkeys, true);
+
+          // Устанавливаем громкость и состояние mute
+          player.volume(settings.volume);
+          player.muted(settings.isMuted);
+
+          // Устанавливаем скорость после загрузки метаданных
+          player.one("loadedmetadata", () => {
+            player.playbackRate(settings.playbackSpeed);
+            if (
+              SaveManager.getAnimeProgress(anime.animeResult.anime_url)?.time
+            ) {
+              player.currentTime(
+                SaveManager.getAnimeProgress(anime.animeResult.anime_url)
+                  ?.time || 0,
+              );
+            }
           });
-        }
+
+          // Добавляем слушатели событий
+          player.on("ratechange", () => {
+            const newRate = player.playbackRate();
+            newRate != null && SaveManager.setPlaybackSpeed(newRate);
+          });
+
+          player.on("volumechange", () => {
+            const newVolume = player.volume();
+            const isMuted = player.muted();
+            newVolume != null && SaveManager.setVolume(newVolume);
+            isMuted != null && SaveManager.setMuted(isMuted);
+          });
+        });
       });
     }
 
@@ -236,8 +383,17 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   return (
     <div className="video-container" data-vjs-player ref={playerContainerRef}>
       <div ref={videoRef} className="video-container" />
-      {isPlayerReady && videoParams && (
+      {currentAction && (
+        <ActionIcon
+          action={currentAction}
+          timestamp={actionTimestamp}
+          volume={playerRef.current?.volume()}
+          player={playerRef.current}
+        />
+      )}
+      {isPlayerReady && videoParams && playerRef.current && (
         <>
+          <KeymapButton player={playerRef.current} />
           <SkipButton
             player={playerRef.current}
             anime={anime}
