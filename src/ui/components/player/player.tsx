@@ -295,7 +295,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
           player.muted(settings.isMuted);
 
           // Устанавливаем скорость после загрузки метаданных
-          player.one("loadedmetadata", () => {
+          player.on("loadedmetadata", () => {
             player.playbackRate(settings.playbackSpeed);
             if (
               SaveManager.getAnimeProgress(anime.animeResult.anime_url)?.time
