@@ -3,14 +3,14 @@
   "files": ["dist-react", "dist-electron"],
   "mac": {
     "target": ["zip", "dir"],
-    "icon": "public/icon.png"
+    "icon": "assets/icon.png"
   },
   "win": {
     "target": ["msi"],
-    "icon": "public/icon.png"
+    "icon": "assets/icon.png"
   },
   "linux": {
-    "icon": "public/icon.png",
+    "icon": "assets/icon.png",
     "target": ["AppImage", "tar.gz"],
     "category": "Utility"
   }
