@@ -1,8 +1,6 @@
 # AniParser
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub release](https://img.shields.io/github/release/sinedka/aniparser.svg)](https://github.com/sinedka/aniparser/releases)
-[![GitHub issues](https://img.shields.io/github/issues/sinedka/aniparser.svg)](https://github.com/sinedka/aniparser/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![GitHub release](https://img.shields.io/github/release/sinedka/aniparser.svg)](https://github.com/sinedka/aniparser/releases) [![GitHub issues](https://img.shields.io/github/issues/sinedka/aniparser.svg)](https://github.com/sinedka/aniparser/issues)
 
 > ⚠️ **Внимание**: Проект находится в бета-версии. Некоторые функции могут работать нестабильно или быть недоступны. Если вы обнаружили баг, пожалуйста, создайте issue в репозитории.
 
