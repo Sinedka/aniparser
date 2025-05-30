@@ -11,16 +11,16 @@ AniParser — это современное приложение для прос
 ## Скриншоты
 
 <div align="center">
-  <img src=".github/Screenshots/AnimePage.png" alt="Страница аниме" width="800"/>
+  <img src="https://raw.githubusercontent.com/sinedka/aniparser/master/.github/Screenshots/AnimePage.png" alt="Страница аниме" width="800"/>
   <p><em>Страница аниме</em></p>
   
-  <img src=".github/Screenshots/Player.png" alt="Плеер" width="800"/>
+  <img src="https://raw.githubusercontent.com/sinedka/aniparser/master/.github/Screenshots/Player.png" alt="Плеер" width="800"/>
   <p><em>Встроенный видеоплеер</em></p>
   
-  <img src=".github/Screenshots/Search.png" alt="Поиск" width="800"/>
+  <img src="https://raw.githubusercontent.com/sinedka/aniparser/master/.github/Screenshots/Search.png" alt="Поиск" width="800"/>
   <p><em>Страница поиска</em></p>
 
-  <img src=".github/Screenshots/Ongoings.png" alt="Онгоинги" width="800"/>
+  <img src="https://raw.githubusercontent.com/sinedka/aniparser/master/.github/Screenshots/Ongoings.png" alt="Онгоинги" width="800"/>
   <p><em>Страница с онгоингами</em></p>
 </div>
 
