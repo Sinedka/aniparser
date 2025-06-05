@@ -47,6 +47,9 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
     if (qualitySelector && !videojs.getPlugin("qualitySelector")) {
       qualitySelector(videojs);
     }
+    return () => {
+      playerRef.current?.dispose();
+    };
   }, []);
 
   //Получаем VideoParams
@@ -90,43 +93,21 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         };
       });
       setSources(videoSources);
-      const oldParams = SaveManager.getAnimeProgress(
-        anime.animeResult.anime_url,
-      );
-      if (
-        oldParams?.dubber != videoParams.dubber ||
-        oldParams?.episode != videoParams.episode ||
-        oldParams?.player != videoParams.player
-      ) {
-        SaveManager.saveAnimeProgress(anime.animeResult.anime_url, {
-          player: videoParams.player,
-          dubber: videoParams.dubber,
-          episode: videoParams.episode,
-          time: 0,
-        });
-      }
+      SaveManager.saveAnimeProgress(anime.animeResult.anime_url, {
+        player: videoParams.player,
+        dubber: videoParams.dubber,
+        episode: videoParams.episode,
+        time: 0,
+      });
     });
   }, [videoParams]);
 
   // Обновляем useEffect для инициализации плеера
   React.useEffect(() => {
     const settings = SaveManager.getSettings();
-
-    //setting focus on player
-    const activeElement = document.activeElement;
-    if (
-      !(
-        activeElement instanceof HTMLInputElement ||
-        activeElement instanceof HTMLTextAreaElement ||
-        activeElement instanceof HTMLSelectElement
-      )
-    ) {
-      (
-        videoRef.current?.querySelector(
-          ".video-js .vjs-tech",
-        ) as HTMLVideoElement
-      )?.focus();
-    }
+    const savedAnimeProgress = SaveManager.getAnimeProgress(
+      anime.animeResult.anime_url,
+    );
 
     const options = {
       autoplay: true,
@@ -137,6 +118,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       aspectRatio: "16:9",
       playbackRates: [0.5, 1, 1.5, 2],
       sources: sources,
+      errorDisplay: false,
       controlBar: {
         children: [
           "playToggle",
@@ -149,6 +131,129 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         ],
       },
     };
+
+    function handleGlobalHotkeys(e: KeyboardEvent): void {
+      if (!player) return;
+      function isTyping(element: EventTarget | null): boolean {
+        if (!element) return false;
+
+        if (
+          element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement
+        ) {
+          return true;
+        }
+
+        return false;
+      }
+
+      if (isTyping(document.activeElement)) return;
+
+      const updateAction = (action: ActionType) => {
+        setCurrentAction(action);
+        setActionTimestamp(Date.now());
+      };
+
+      switch (e.code) {
+        case "Space":
+        case "KeyK":
+          e.preventDefault();
+          if (player.paused()) {
+            updateAction("play");
+            player.play();
+          } else {
+            updateAction("pause");
+            player.pause();
+          }
+          break;
+        case "KeyJ":
+          e.preventDefault();
+          const currentTimeBack = player.currentTime();
+          if (typeof currentTimeBack === "number") {
+            updateAction("backward");
+            player.currentTime(Math.max(currentTimeBack - 5, 0));
+          }
+          break;
+        case "KeyL":
+          e.preventDefault();
+          const currentTimeForward = player.currentTime();
+          if (typeof currentTimeForward === "number") {
+            updateAction("forward");
+            player.currentTime(currentTimeForward + 5);
+          }
+          break;
+        case "KeyF":
+          e.preventDefault();
+          if (
+            player.isFullscreen &&
+            player.requestFullscreen &&
+            player.exitFullscreen
+          ) {
+            if (player.isFullscreen()) {
+              player.exitFullscreen();
+            } else {
+              player.requestFullscreen();
+            }
+          }
+          break;
+        case "KeyM":
+          e.preventDefault();
+          const isMuted = player.muted();
+          if (typeof isMuted === "boolean") {
+            updateAction(isMuted ? "unmute" : "mute");
+            player.muted(!isMuted);
+          }
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          const currentVolume = player.volume();
+          if (typeof currentVolume === "number") {
+            updateAction("volumeUp");
+            player.volume(Math.min(currentVolume + 0.1, 1));
+          }
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          const newVolume = player.volume();
+          if (typeof newVolume === "number") {
+            updateAction("volumeDown");
+            player.volume(Math.max(newVolume - 0.1, 0));
+          }
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          const timeLeft = player.currentTime();
+          if (typeof timeLeft === "number") {
+            updateAction("backward");
+            player.currentTime(Math.max(timeLeft - 5, 0));
+          }
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          const timeRight = player.currentTime();
+          if (typeof timeRight === "number") {
+            updateAction("forward");
+            player.currentTime(timeRight + 5);
+          }
+          break;
+        case "BracketLeft":
+          e.preventDefault();
+          const currentRate = player.playbackRate();
+          if (typeof currentRate === "number") {
+            updateAction("speedDown");
+            player.playbackRate(Math.max(currentRate - 0.25, 0.5));
+          }
+          break;
+        case "BracketRight":
+          e.preventDefault();
+          const newRate = player.playbackRate();
+          if (typeof newRate === "number") {
+            updateAction("speedUp");
+            player.playbackRate(Math.min(newRate + 0.25, 2));
+          }
+          break;
+      }
+    }
 
     if (!playerRef.current) {
       if (sources.length === 0) return;
@@ -164,132 +269,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         if (!player) return;
         player.ready(() => {
           setIsPlayerReady(true);
-          function handleGlobalHotkeys(e: KeyboardEvent): void {
-            if (!player) return;
-            function isTyping(element: EventTarget | null): boolean {
-              if (!element) return false;
-
-              if (
-                element instanceof HTMLInputElement ||
-                element instanceof HTMLTextAreaElement
-              ) {
-                return true;
-              }
-
-              return false;
-            }
-
-            if (isTyping(document.activeElement)) return;
-
-            const updateAction = (action: ActionType) => {
-              setCurrentAction(action);
-              setActionTimestamp(Date.now());
-            };
-
-            switch (e.code) {
-              case "Space":
-              case "KeyK":
-                e.preventDefault();
-                if (player.paused()) {
-                  updateAction("play");
-                  player.play();
-                } else {
-                  updateAction("pause");
-                  player.pause();
-                }
-                break;
-              case "KeyJ":
-                e.preventDefault();
-                const currentTimeBack = player.currentTime();
-                if (typeof currentTimeBack === "number") {
-                  updateAction("backward");
-                  player.currentTime(Math.max(currentTimeBack - 5, 0));
-                }
-                break;
-              case "KeyL":
-                e.preventDefault();
-                const currentTimeForward = player.currentTime();
-                if (typeof currentTimeForward === "number") {
-                  updateAction("forward");
-                  player.currentTime(currentTimeForward + 5);
-                }
-                break;
-              case "KeyF":
-                e.preventDefault();
-                if (
-                  player.isFullscreen &&
-                  player.requestFullscreen &&
-                  player.exitFullscreen
-                ) {
-                  if (player.isFullscreen()) {
-                    player.exitFullscreen();
-                  } else {
-                    player.requestFullscreen();
-                  }
-                }
-                break;
-              case "KeyM":
-                e.preventDefault();
-                const isMuted = player.muted();
-                if (typeof isMuted === "boolean") {
-                  updateAction(isMuted ? "unmute" : "mute");
-                  player.muted(!isMuted);
-                }
-                break;
-              case "ArrowUp":
-                e.preventDefault();
-                const currentVolume = player.volume();
-                if (typeof currentVolume === "number") {
-                  updateAction("volumeUp");
-                  player.volume(Math.min(currentVolume + 0.1, 1));
-                }
-                break;
-              case "ArrowDown":
-                e.preventDefault();
-                const newVolume = player.volume();
-                if (typeof newVolume === "number") {
-                  updateAction("volumeDown");
-                  player.volume(Math.max(newVolume - 0.1, 0));
-                }
-                break;
-              case "ArrowLeft":
-                e.preventDefault();
-                const timeLeft = player.currentTime();
-                if (typeof timeLeft === "number") {
-                  updateAction("backward");
-                  player.currentTime(Math.max(timeLeft - 5, 0));
-                }
-                break;
-              case "ArrowRight":
-                e.preventDefault();
-                const timeRight = player.currentTime();
-                if (typeof timeRight === "number") {
-                  updateAction("forward");
-                  player.currentTime(timeRight + 5);
-                }
-                break;
-              case "BracketLeft":
-                e.preventDefault();
-                const currentRate = player.playbackRate();
-                if (typeof currentRate === "number") {
-                  updateAction("speedDown");
-                  player.playbackRate(Math.max(currentRate - 0.25, 0.5));
-                }
-                break;
-              case "BracketRight":
-                e.preventDefault();
-                const newRate = player.playbackRate();
-                if (typeof newRate === "number") {
-                  updateAction("speedUp");
-                  player.playbackRate(Math.min(newRate + 0.25, 2));
-                }
-                break;
-            }
-          }
-
-          // Добавляем слушатель глобальных горячих клавиш
-          document.addEventListener("keydown", handleGlobalHotkeys, true);
-
           // Устанавливаем громкость и состояние mute
           player.volume(settings.volume);
           player.muted(settings.isMuted);
@@ -297,14 +276,11 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
           // Устанавливаем скорость после загрузки метаданных
           player.on("loadedmetadata", () => {
             player.playbackRate(settings.playbackSpeed);
-            if (
-              SaveManager.getAnimeProgress(anime.animeResult.anime_url)?.time
-            ) {
-              player.currentTime(
-                SaveManager.getAnimeProgress(anime.animeResult.anime_url)
-                  ?.time || 0,
-              );
-            }
+            player.currentTime(savedAnimeProgress?.time || 0);
+          });
+
+          player.on("error", function () {
+            player.removeClass("vjs-error");
           });
 
           // Добавляем слушатели событий
@@ -344,6 +320,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       }
 
       function clearProgressInterval() {
+        console.log("Clearing progress interval");
         if (progressInterval.current) {
           clearInterval(progressInterval.current);
           progressInterval.current = null;
@@ -365,20 +342,14 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       }
 
       progressInterval.current = setInterval(SaveTimeNotPaused, 10000);
+      document.removeEventListener("keydown", handleGlobalHotkeys, true);
+      document.addEventListener("keydown", handleGlobalHotkeys, true);
+
+      player.on("dispose", () =>
+        document.removeEventListener("keydown", handleGlobalHotkeys, true),
+      );
     }
   }, [sources, videoRef]);
-
-  // Dispose the Video.js player when the functional component unmounts
-  React.useEffect(() => {
-    const player = playerRef.current;
-
-    return () => {
-      if (player && !player.isDisposed()) {
-        player.dispose();
-        playerRef.current = null;
-      }
-    };
-  }, [playerRef]);
 
   return (
     <div className="video-container" data-vjs-player ref={playerContainerRef}>

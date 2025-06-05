@@ -70,11 +70,12 @@ export class SaveManager {
   }
 
   static saveAnimeProgress(url: string, data: AnimeSaveData): void {
+    console.log("Saving anime progress for URL:", url, "Data:", data);
     this.animeProgress[url] = data;
     try {
       localStorage.setItem(
         ANIME_PROGRESS_KEY,
-        JSON.stringify(this.animeProgress)
+        JSON.stringify(this.animeProgress),
       );
     } catch (error) {
       console.error("Error saving anime progress:", error);
@@ -94,7 +95,7 @@ export class SaveManager {
     try {
       localStorage.setItem(
         ANIME_PROGRESS_KEY,
-        JSON.stringify(this.animeProgress)
+        JSON.stringify(this.animeProgress),
       );
     } catch (error) {
       console.error("Error clearing anime progress:", error);
