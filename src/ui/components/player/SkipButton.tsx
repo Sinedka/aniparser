@@ -20,6 +20,18 @@ const SkipButton: React.FC<SkipButtonProps> = ({
   const [isExiting, setIsExiting] = useState(false);
   const exitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const handleKeyPress = (event: KeyboardEvent) => {
+    if (!player) return;
+    switch (event.code) {
+      case "Enter":
+        event.preventDefault();
+        if (showSkipButton && !isExiting) {
+          handleSkip();
+        }
+        break;
+    }
+  };
+
   // Функция для пропуска опенинга
   const handleSkip = useCallback(() => {
     const currentEpisode =
@@ -45,6 +57,7 @@ const SkipButton: React.FC<SkipButtonProps> = ({
       setShowSkipButton(false);
       setIsExiting(false);
     }, 300); // Время должно совпадать с длительностью анимации в CSS
+    return () => {};
   }, []);
 
   // Функция для скрытия кнопки
@@ -117,25 +130,20 @@ const SkipButton: React.FC<SkipButtonProps> = ({
     }
   }, [videoParams]);
 
+  useEffect(() => {
+    return () => document.removeEventListener("keydown", handleKeyPress, true);
+  }, []);
+
   // Добавляем обработчик клавиш
   useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (!player) return;
-      switch (event.code) {
-        case "Enter":
-          event.preventDefault();
-          if (showSkipButton && !isExiting) {
-            handleSkip();
-          }
-          break;
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyPress, true);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [player, showSkipButton, isExiting, handleSkip]);
+    if (!showSkipButton) {
+      console.log("Removing keydown listener");
+      document.removeEventListener("keydown", handleKeyPress, true);
+    } else {
+      document.removeEventListener("keydown", handleKeyPress, true);
+      document.addEventListener("keydown", handleKeyPress, true);
+    }
+  }, [showSkipButton]);
 
   if (!showSkipButton && !isExiting) {
     return null;

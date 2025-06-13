@@ -64,7 +64,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         episode: savedVideoParams.episode,
       });
     } else {
-      // Устанавливаем начальные значения, если нет сохраненного прогресса
+      // Устанавливаем начальные значения, если нет сохраненного прогреса
       setVideoParams({
         player: 0,
         dubber: 0,
@@ -92,13 +92,27 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
           selected: index === sources.length - 1,
         };
       });
+      const savedParams = SaveManager.getAnimeProgress(
+        anime.animeResult.anime_url,
+      );
+
+      if (!savedParams) return;
+
+      if (
+        videoParams.episode !== savedParams.episode ||
+        videoParams.player !== savedParams.player ||
+        videoParams.dubber !== savedParams.dubber
+      ) {
+        console.log("Saving new anime progress");
+        SaveManager.saveAnimeProgress(anime.animeResult.anime_url, {
+          player: videoParams.player,
+          dubber: videoParams.dubber,
+          episode: videoParams.episode,
+          time: 0,
+        });
+      }
+
       setSources(videoSources);
-      SaveManager.saveAnimeProgress(anime.animeResult.anime_url, {
-        player: videoParams.player,
-        dubber: videoParams.dubber,
-        episode: videoParams.episode,
-        time: 0,
-      });
     });
   }, [videoParams]);
 
@@ -115,7 +129,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       responsive: true,
       fluid: false,
       fill: true,
-      aspectRatio: "16:9",
+      // aspectRatio: "16:9",
       playbackRates: [0.5, 1, 1.5, 2],
       sources: sources,
       errorDisplay: false,
@@ -255,13 +269,20 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       }
     }
 
+    function clearProgressInterval() {
+      console.log("Clearing progress interval");
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+        progressInterval.current = null;
+      }
+    }
+
     if (!playerRef.current) {
       if (sources.length === 0) return;
       const videoElement = document.createElement("video-js");
 
       if (!videoRef.current) return;
 
-      // videoElement.classList.add("vjs-big-play-centered");
       videoRef.current.appendChild(videoElement);
 
       playerRef.current = videojs(videoElement, options, () => {
@@ -272,12 +293,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
           // Устанавливаем громкость и состояние mute
           player.volume(settings.volume);
           player.muted(settings.isMuted);
-
-          // Устанавливаем скорость после загрузки метаданных
-          player.on("loadedmetadata", () => {
-            player.playbackRate(settings.playbackSpeed);
-            player.currentTime(savedAnimeProgress?.time || 0);
-          });
 
           player.on("error", function () {
             player.removeClass("vjs-error");
@@ -295,11 +310,19 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
             newVolume != null && SaveManager.setVolume(newVolume);
             isMuted != null && SaveManager.setMuted(isMuted);
           });
+
+          document.addEventListener("keydown", handleGlobalHotkeys, true);
+
+          player.on("dispose", () => {
+            document.removeEventListener("keydown", handleGlobalHotkeys, true);
+            clearProgressInterval();
+          });
         });
       });
     }
 
     const player = playerRef.current;
+
     if (player && typeof player.paused === "function") {
       player.src(options.sources);
 
@@ -308,7 +331,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
           const animeUrl = anime.animeResult.anime_url || "";
           const currentTime = player.currentTime();
 
-          if (currentTime != null) {
+          if (currentTime != null && currentTime > 0) {
             SaveManager.saveAnimeProgress(animeUrl, {
               player: videoParams.player,
               dubber: videoParams.dubber,
@@ -319,37 +342,27 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         }
       }
 
-      function clearProgressInterval() {
-        console.log("Clearing progress interval");
-        if (progressInterval.current) {
-          clearInterval(progressInterval.current);
-          progressInterval.current = null;
-        }
-      }
-
-      player.off("play", SaveTime);
-      player.on("pause", SaveTime);
-
-      clearProgressInterval();
-
-      player.off("dispose", clearProgressInterval);
-      player.on("dispose", clearProgressInterval);
-
       function SaveTimeNotPaused() {
         if (videoParams && !player.paused()) {
           SaveTime();
         }
       }
 
-      progressInterval.current = setInterval(SaveTimeNotPaused, 10000);
-      document.removeEventListener("keydown", handleGlobalHotkeys, true);
-      document.addEventListener("keydown", handleGlobalHotkeys, true);
+      player.off("pause", SaveTime);
+      player.on("pause", SaveTime);
 
-      player.on("dispose", () =>
-        document.removeEventListener("keydown", handleGlobalHotkeys, true),
-      );
+      clearProgressInterval();
+      progressInterval.current = setInterval(SaveTimeNotPaused, 1000);
     }
-  }, [sources, videoRef]);
+
+    function setMetaDataSettings() {
+      player.playbackRate(settings.playbackSpeed);
+      player.currentTime(savedAnimeProgress?.time || 0);
+      player.off("loadedmetadata", setMetaDataSettings);
+    }
+
+    player.on("loadedmetadata", setMetaDataSettings);
+  }, [sources]);
 
   return (
     <div className="video-container" data-vjs-player ref={playerContainerRef}>
