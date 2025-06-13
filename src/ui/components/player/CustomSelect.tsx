@@ -44,6 +44,7 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
 
     const handleOptionClick = (optionValue: number) => {
       onChange(optionValue);
+      setIsHover(false);
       closeSelect();
     };
 
