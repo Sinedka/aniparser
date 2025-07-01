@@ -25,7 +25,7 @@
             sha256 = "sha256-aqePA22tOs7CYT2u/QbHhLAyAks6ny7IBQAf+9RF8Ro=";
           };
 
-          nativeBuildInputs = with pkgs; [ nodejs npm ];
+          nativeBuildInputs = with pkgs; [ nodejs ];
           buildInputs = [ pkgs.electron ];
 
           buildPhase = ''
