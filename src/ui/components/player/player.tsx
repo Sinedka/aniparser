@@ -95,19 +95,10 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         anime.animeResult.anime_url,
       );
 
-      if (!savedParams){
-        SaveManager.saveAnimeProgress(anime.animeResult.anime_url, {
-          player: videoParams.player,
-          dubber: videoParams.dubber,
-          episode: videoParams.episode,
-          time: 0,
-        });
-      }
-
-      if (
+      if (savedParams && (
         videoParams.episode !== savedParams.episode ||
         videoParams.player !== savedParams.player ||
-        videoParams.dubber !== savedParams.dubber
+        videoParams.dubber !== savedParams.dubber )
       ) {
         console.log("Saving new anime progress");
         SaveManager.saveAnimeProgress(anime.animeResult.anime_url, {
