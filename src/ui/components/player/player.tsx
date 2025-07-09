@@ -81,7 +81,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       anime.players[videoParams.player].dubbers[videoParams.dubber].episodes[
         videoParams.episode
       ];
-
     currentEpisode.getSources().then((sources) => {
       // Создаем источники с метками качества
       const videoSources = sources.map((source, index) => {
@@ -96,7 +95,14 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         anime.animeResult.anime_url,
       );
 
-      if (!savedParams) return;
+      if (!savedParams){
+        SaveManager.saveAnimeProgress(anime.animeResult.anime_url, {
+          player: videoParams.player,
+          dubber: videoParams.dubber,
+          episode: videoParams.episode,
+          time: 0,
+        });
+      }
 
       if (
         videoParams.episode !== savedParams.episode ||
