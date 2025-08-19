@@ -8,7 +8,6 @@
 
   outputs = { self, nixpkgs, flake-utils }:
     let
-      pkgs = nixpkgs.legacyPackages.${system};
         forEachSystem = fn:
         nixpkgs.lib.genAttrs
           nixpkgs.lib.platforms.linux
@@ -21,7 +20,7 @@
         default = aniparser;
       });
 
-      devShells.forEachSystem(system: pkgs: rec {
+      devShells = forEachSystem (system: pkgs: rec {
         default = pkgs.mkShell {
           buildInputs = with pkgs; [
             nodejs
@@ -35,5 +34,5 @@
           '';
         };
       });
-    }
+    };
 }
