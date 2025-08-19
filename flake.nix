@@ -7,24 +7,22 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-          forEachSystem = fn:
-          nixpkgs.lib.genAttrs
-            nixpkgs.lib.platforms.linux
-              (system: fn system nixpkgs.legacyPackages.${system});
-      in
-      {
-        packages = forEachSystem (system: pkgs: rec {
-          aniparser = pkgs.callPackage ./default.nix {
-            gitRev = self.rev or self.dirtyRev;
-          };
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+        forEachSystem = fn:
+        nixpkgs.lib.genAttrs
+          nixpkgs.lib.platforms.linux
+            (system: fn system nixpkgs.legacyPackages.${system});
+    in
+    {
+      packages = forEachSystem (system: pkgs: rec {
+        aniparser = pkgs.callPackage ./default.nix {  };
 
-          default = aniparser;
-        });
+        default = aniparser;
+      });
 
-        devShells.default = pkgs.mkShell {
+      devShells.forEachSystem(system: pkgs: rec {
+        default = pkgs.mkShell {
           buildInputs = with pkgs; [
             nodejs
             electron
@@ -37,4 +35,5 @@
           '';
         };
       });
+    }
 }
