@@ -1,23 +1,15 @@
-{ stdenv, fetchFromGitHub, nodejs, electron, lib }:
+{ stdenv, fetchurl, lib, electron }:
 
 stdenv.mkDerivation rec {
   pname = "aniparser";
   version = "0.2.8";
 
-  src = fetchFromGitHub {
-    owner = "Sinedka";
-    repo = "aniparser";
-    rev = version;
-    sha256 = "sha256-9cyvC2752bBFjIsu6jNv4MG4xZZGn8Xo/i7krFa8uiY=";
+  src = fetchurl {
+    url = "https://github.com/Sinedka/aniparser/releases/download/0.2.8/dist-electron.tar.gz";
+    sha256 = lib.fakeSha256; # Заменить на реальный хэш после первой сборки
   };
 
-  nativeBuildInputs = [ nodejs electron ];
-
-  buildPhase = ''
-    npm install
-    npm run transpile:electron
-    npm run build
-  '';
+  nativeBuildInputs = [ electron ];
 
   installPhase = ''
     mkdir -p $out/usr/lib/$pname
@@ -25,13 +17,15 @@ stdenv.mkDerivation rec {
     mkdir -p $out/usr/share/applications
     mkdir -p $out/usr/share/icons/hicolor/512x512/apps
 
-    cp -r dist-electron/* $out/usr/lib/$pname/
-    cp -r dist-react/* $out/usr/lib/$pname/dist-electron
+    # Распаковываем архив
+    tar -xzf $src -C $out/usr/lib/$pname
 
-    if [ -f dist-react/icon.png ]; then
-      cp dist-react/icon.png $out/usr/share/icons/hicolor/512x512/apps/$pname.png
+    # Проверяем наличие иконки и копируем её
+    if [ -f $out/usr/lib/$pname/dist-react/icon.png ]; then
+      cp $out/usr/lib/$pname/dist-react/icon.png $out/usr/share/icons/hicolor/512x512/apps/$pname.png
     fi
 
+    # Создаём desktop entry
     cat > $out/usr/share/applications/$pname.desktop <<EOF
 [Desktop Entry]
 Name=AniParser
@@ -43,6 +37,7 @@ Type=Application
 Categories=Utility;
 EOF
 
+    # Скрипт запуска
     cat > $out/usr/bin/$pname <<EOF
 #!/bin/sh
 exec ${electron}/bin/electron $out/usr/lib/$pname/main.js "\$@"
