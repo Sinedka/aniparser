@@ -2,67 +2,39 @@
   description = "AniParser Electron application";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
+  outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-        };
-
-        pname = "aniparser";
-        version = "0.2.7";
-
-        aniparser = pkgs.stdenv.mkDerivation {
-          inherit pname version;
-          src = pkgs.fetchFromGitHub {
-            owner = "Sinedka";
-            repo = "aniparser";
-            rev = "v${version}";
-            sha256 = "sha256-aqePA22tOs7CYT2u/QbHhLAyAks6ny7IBQAf+9RF8Ro=";
+        pkgs = nixpkgs.legacyPackages.${system};
+          forEachSystem = fn:
+          nixpkgs.lib.genAttrs
+            nixpkgs.lib.platforms.linux
+              (system: fn system nixpkgs.legacyPackages.${system});
+      in
+      {
+        packages = forEachSystem (system: pkgs: rec {
+          aniparser = pkgs.callPackage ./default.nix {
+            gitRev = self.rev or self.dirtyRev;
           };
 
-          nativeBuildInputs = with pkgs; [ nodejs ];
-          buildInputs = [ pkgs.electron ];
+          default = aniparser;
+        });
 
-          buildPhase = ''
-            npm install
-            npm run transpile:electron
-            npm run build
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            nodejs
+            electron
+            wine
+          ];
+
+          shellHook = ''
+            export ELECTRON_SKIP_BINARY_DOWNLOAD=1
+            export ELECTRON_OVERRIDE_DIST_PATH=${pkgs.electron}/bin/
           '';
-
-          installPhase = ''
-            mkdir -p $out/lib/${pname}
-            cp -r dist-electron $out/lib/${pname}/
-            cp -r dist-react $out/lib/${pname}/dist-electron
-
-            mkdir -p $out/bin
-            cat > $out/bin/${pname} << EOF
-#!/bin/sh
-exec ${pkgs.electron}/bin/electron $out/lib/${pname}/dist-electron/main.js "\$@"
-EOF
-            chmod +x $out/bin/${pname}
-          '';
-
-          meta = with pkgs.lib; {
-            description = "AniParser Electron application";
-            homepage = "https://github.com/Sinedka/aniparser";
-            license = licenses.mit;
-            platforms = platforms.linux;
-            maintainers = with maintainers; [ ]; # добавьте при желании
-          };
         };
-
-      in {
-        packages.default = aniparser;
-
-        apps.default = flake-utils.lib.mkApp {
-          drv = aniparser;
-          name = "aniparser";
-        };
-      }
-    );
+      });
 }
