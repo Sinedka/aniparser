@@ -8,7 +8,7 @@ stdenv.mkDerivation rec {
     owner = "Sinedka";
     repo = "aniparser";
     rev = version;
-    sha256 = lib.fakeSha256; # заменить на настоящий sha256 после первой сборки
+    sha256 = "sha256-9cyvC2752bBFjIsu6jNv4MG4xZZGn8Xo/i7krFa8uiY=";
   };
 
   nativeBuildInputs = [ nodejs electron ];
