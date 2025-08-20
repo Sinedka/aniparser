@@ -54,9 +54,21 @@ AniParser — это современное приложение для прос
 yay -S aniparser
 ```
 
+### Nix
+
+используйте флейк
+```nix
+inputs = {
+  aniparser.url = "github:sinedka/aniparser" #если хотите определенную версию используйте ?ref=
+  aniparser.inputs.nixpkgs.follows = "nixpkgs"
+}
+```
+
+этот пакет доступен как quickshell.packages.<system>.default, который можно добавить в environment.systemPackages, home.packages если вы используете home-manager, или devshell.
+
 #### Другие системы
 
-Скачайте последнюю версию приложения со [страницы релизов](https://github.com/sinedka/aniparser/releases)
+Скачайте последнюю версию приложения для вышей OC со [страницы релизов](https://github.com/sinedka/aniparser/releases)
 
 ## TODO
 
