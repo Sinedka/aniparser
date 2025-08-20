@@ -59,9 +59,9 @@ yay -S aniparser
 используйте флейк
 ```nix
 inputs = {
-  aniparser.url = "github:sinedka/aniparser" #если хотите определенную версию используйте ?ref=
-  aniparser.inputs.nixpkgs.follows = "nixpkgs"
-}
+  aniparser.url = "github:sinedka/aniparser"; #если хотите определенную версию используйте ?ref=
+  aniparser.inputs.nixpkgs.follows = "nixpkgs";
+};
 ```
 
 этот пакет доступен как quickshell.packages.<system>.default, который можно добавить в environment.systemPackages, home.packages если вы используете home-manager, или devshell.
