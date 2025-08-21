@@ -12,21 +12,21 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ electron ];
 
   installPhase = ''
-    mkdir -p $out/usr/lib/$pname
-    mkdir -p $out/usr/bin
-    mkdir -p $out/usr/share/applications
-    mkdir -p $out/usr/share/icons/hicolor/512x512/apps
+    mkdir -p $out/lib/$pname
+    mkdir -p $out/bin
+    mkdir -p $out/share/applications
+    mkdir -p $out/share/icons/hicolor/512x512/apps
 
     # Распаковываем архив
-    tar -xzf $src -C $out/usr/lib/$pname
+    tar -xzf $src -C $out/lib/$pname
 
     # Проверяем наличие иконки и копируем её
-    if [ -f $out/usr/lib/$pname/dist-react/icon.png ]; then
-      cp $out/usr/lib/$pname/dist-react/icon.png $out/usr/share/icons/hicolor/512x512/apps/$pname.png
+    if [ -f $out/lib/$pname/dist-react/icon.png ]; then
+      cp $out/lib/$pname/dist-react/icon.png $out/share/icons/hicolor/512x512/apps/$pname.png
     fi
 
     # Создаём desktop entry
-    cat > $out/usr/share/applications/$pname.desktop <<EOF
+    cat > $out/share/applications/$pname.desktop <<EOF
 [Desktop Entry]
 Name=AniParser
 Comment=AniParser Electron application
@@ -38,11 +38,11 @@ Categories=Utility;
 EOF
 
     # Скрипт запуска
-    cat > $out/usr/bin/$pname <<EOF
+    cat > $out/bin/$pname <<EOF
 #!/bin/sh
-exec ${electron}/bin/electron $out/usr/lib/$pname/dist-electron/main.js "\$@"
+exec ${electron}/bin/electron $out/lib/$pname/dist-electron/main.js "\$@"
 EOF
-    chmod +x $out/usr/bin/$pname
+    chmod +x $out/bin/$pname
   '';
 
   meta = with lib; {
