@@ -40,7 +40,7 @@ EOF
     # Скрипт запуска
     cat > $out/usr/bin/$pname <<EOF
 #!/bin/sh
-exec ${electron}/bin/electron $out/usr/lib/$pname/main.js "\$@"
+exec ${electron}/bin/electron $out/usr/lib/$pname/dist-electron/main.js "\$@"
 EOF
     chmod +x $out/usr/bin/$pname
   '';
