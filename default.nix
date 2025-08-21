@@ -6,7 +6,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "https://github.com/Sinedka/aniparser/releases/download/0.2.9/dist-electron.tar.gz";
-    sha256 = "sha256-CLzW59Il9qyIGFGyMqqC9dS13lSgJ9MlejJf6I1Mwqg=";
+    sha256 = "sha256-tphy5i4/6bj7qESFOZaq/d40ghEe6QzH9AqQW/mAXYY=";
   };
 
   nativeBuildInputs = [ electron ];
