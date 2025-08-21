@@ -2,10 +2,10 @@
 
 stdenv.mkDerivation rec {
   pname = "aniparser";
-  version = "0.2.8";
+  version = "0.2.9";
 
   src = fetchurl {
-    url = "https://github.com/Sinedka/aniparser/releases/download/0.2.8/dist-electron.tar.gz";
+    url = "https://github.com/Sinedka/aniparser/releases/download/0.2.9/dist-electron.tar.gz";
     sha256 = "sha256-CLzW59Il9qyIGFGyMqqC9dS13lSgJ9MlejJf6I1Mwqg=";
   };
 
