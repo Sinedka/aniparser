@@ -128,7 +128,7 @@ export default function OngoingPage() {
       <div className="history-Background">
         <h2 className="continue-watching"> Продолжение просмотра </h2>
           {AnimePlate(latestAnime)}
-        <button onClick={() => openHistory()}> вся история</button>
+        <button className="full-history-button" onClick={() => openHistory()}> вся история</button>
       </div>
       }
       <div className="flip-cards-container">

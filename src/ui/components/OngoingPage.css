@@ -1,7 +1,33 @@
+/* .full-history-button { */
+/*   width: calc(100% - 20px); /* уменьшаем ширину на 20px */ */
+/*   margin: 10px; */
+/*   padding: 12px 30px; */
+/*   background: var(--accent-primary); */
+/*   color: var(--text-primary); */
+/*   border: none; */
+/*   border-radius: 6px; */
+/*   font-size: 1.1em; */
+/*   cursor: pointer; */
+/*   transition: all 0.3s ease; */
+/*   text-transform: uppercase; */
+/*   font-weight: 600; */
+/*   letter-spacing: 0.5px; */
+/*   order: 4; */
+/*   align-self: flex-start; */
+/* } */
+/**/
+/* .full-history-button:hover { */
+/*   background: var(--accent-secondary); */
+/*   transform: translateY(-2px); */
+/*   box-shadow: 0 4px 12px var(--shadow); */
+/* } */
+
 .history-Background {
   /* display: flex; */
   gap: 30px;
-  max-width: 1000px;  /* не больше */
+  width: 60%;  /* не больше */
+  min-width: 520px;
+
   margin: 0 auto; /* центр по X */
 
   /* padding: 20px; */
