@@ -14,7 +14,7 @@
    letter-spacing: 0.5px;
    order: 4;
    align-self: flex-start;
- } */
+ }
 
  .full-history-button:hover {
    background: var(--accent-secondary);
