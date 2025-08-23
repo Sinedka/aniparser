@@ -1,5 +1,3 @@
-#!/bin/bash
-
 ask_yes_no() {
     prompt="$1"
 

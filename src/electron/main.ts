@@ -8,7 +8,8 @@ app.whenReady().then(() => {
     frame: process.platform === "win32" ? true : false,
     width: 800,
     height: 600,
-    // icon: path.join(app.getAppPath(), "assets/icon.png"),
+    title: "test",
+    icon: path.join(app.getAppPath(), "assets/icon.png"),
     webPreferences: {
       webSecurity: false,
     },
