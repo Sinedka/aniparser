@@ -20,13 +20,15 @@ const DEFAULT_SETTINGS: PlayerSettings = {
 
 const SETTINGS_KEY = "player_settings";
 const ANIME_PROGRESS_KEY = "anime_progress";
-const STORAGE_KEY = "animeHistory";
+const HISTORY_KEY = "animeHistory";
+const FAVOURITES_KEY = "favourites_list"
 
 
 export class SaveManager {
   private static settings: PlayerSettings = DEFAULT_SETTINGS;
   private static animeProgress: Record<string, AnimeSaveData> = {};
   private static history: string[] = [];
+  private static favourites: string[] = [];
 
   static {
     this.initialize();
@@ -44,7 +46,7 @@ export class SaveManager {
         this.animeProgress = JSON.parse(savedProgress);
       }
 
-      const savedHistory = localStorage.getItem(STORAGE_KEY);
+      const savedHistory = localStorage.getItem(HISTORY_KEY);
       if (savedHistory) {
         this.history = JSON.parse(savedHistory) || [];
       }
@@ -114,11 +116,26 @@ export class SaveManager {
   static saveAnimeToHistory(url: string): void {
     this.history = this.history.filter(item => item !== url);
     this.history.unshift(url);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.history));
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(this.history));
     console.log(this.history);
   }
 
   static getHistory(): string[] {
     return this.history;
+  }
+
+  static addAnimeToFavourites(url:string): void {
+    this.favourites = this.favourites.filter(item => item !== url);
+    this.favourites.unshift(url);
+    localStorage.setItem(FAVOURITES_KEY, JSON.stringify(this.favourites));
+    console.log(this.favourites);
+  }
+
+  static getFavourites(): string[] {
+    return this.favourites;
+  }
+
+  static CheckIsFavourite(url: string): boolean {
+    return this.favourites.includes(url);
   }
 }
