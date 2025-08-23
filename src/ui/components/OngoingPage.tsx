@@ -1,7 +1,7 @@
 import "./OngoingPage.css";
 import { useEffect, useState } from "react";
 import { YummyAnimeExtractor, Ongoing, Anime } from "../../api/source/Yumme_anime_ru";
-import { openAnimePage } from "../body";
+import { openAnimePage, openHistory } from "../body";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
 
@@ -128,6 +128,7 @@ export default function OngoingPage() {
       <div className="history-Background">
         <h2 className="continue-watching"> Продолжение просмотра </h2>
           {AnimePlate(latestAnime)}
+        <button onClick={() => openHistory()}> вся история</button>
       </div>
       }
       <div className="flip-cards-container">

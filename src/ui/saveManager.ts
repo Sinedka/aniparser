@@ -11,27 +11,6 @@ interface AnimeSaveData {
   time: number;
 }
 
-class AnimeHistory {
-  private static STORAGE_KEY = "animeHistory";
-
-  static saveAnimeToHistory(url: string): void {
-    const history = this.getHistory();
-    const updatedHistory = history.filter(item => item !== url);
-    updatedHistory.unshift(url);
-    const limitedHistory = updatedHistory.slice(0, 50);
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(limitedHistory));
-  }
-
-  static getHistory(): string[] {
-    const data = localStorage.getItem(this.STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  }
-
-  static clearHistory(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
-  }
-}
-
 const DEFAULT_SETTINGS: PlayerSettings = {
   playbackSpeed: 1.0,
   volume: 1.0,
@@ -65,7 +44,7 @@ export class SaveManager {
         this.animeProgress = JSON.parse(savedProgress);
       }
 
-      const savedHistory = localStorage.getItem(this.STORAGE_KEY);
+      const savedHistory = localStorage.getItem(STORAGE_KEY);
       if (savedHistory) {
         this.history = JSON.parse(savedHistory) || [];
       }
@@ -135,7 +114,7 @@ export class SaveManager {
   static saveAnimeToHistory(url: string): void {
     this.history = this.history.filter(item => item !== url);
     this.history.unshift(url);
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.history));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.history));
     console.log(this.history);
   }
 
