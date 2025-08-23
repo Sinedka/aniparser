@@ -47,6 +47,9 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
     if (qualitySelector && !videojs.getPlugin("qualitySelector")) {
       qualitySelector(videojs);
     }
+
+    SaveManager.saveAnimeToHistory(anime.animeResult.anime_url)
+
     return () => {
       playerRef.current?.dispose();
     };

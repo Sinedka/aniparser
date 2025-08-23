@@ -1,11 +1,16 @@
 import "./OngoingPage.css";
 import { useEffect, useState } from "react";
-import { YummyAnimeExtractor, Ongoing } from "../../api/source/Yumme_anime_ru";
+import { YummyAnimeExtractor, Ongoing, Anime } from "../../api/source/Yumme_anime_ru";
 import { openAnimePage } from "../body";
 import LoadingSpinner from "./LoadingSpinner";
+import { SaveManager } from "../saveManager";
 
-async function openAnime(ongoing: Ongoing) {
+async function openOngoing(ongoing: Ongoing) {
   openAnimePage(ongoing.ongoingResult.anime_url);
+}
+
+async function openAnime(anime: Anime) {
+  openAnimePage(anime.animeResult.anime_url);
 }
 
 function OngoingPlate(ongoing: Ongoing) {
@@ -34,10 +39,51 @@ function OngoingPlate(ongoing: Ongoing) {
   );
 }
 
+function AnimePlate(animeData: Anime) {
+  return (
+    <a
+      className="anime-plate"
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => openAnime(animeData)}
+    >
+      <div className="thumbnail">
+        <img
+          className="thumbnail-img"
+          src={
+            !animeData.animeResult.poster.huge.startsWith("http")
+              ? `https:${animeData.animeResult.poster.huge}`
+              : animeData.animeResult.poster.huge
+          }
+          alt={animeData.animeResult.title}
+        />
+      </div>
+      <div className="anime-data">
+        <h3 className="title">{animeData.animeResult.title}</h3>
+        <div className="small-info">
+          <div
+            className="small-info-el anime-status"
+            data-status={animeData.animeResult.anime_status.title}
+          >
+            {animeData.animeResult.anime_status.title}
+          </div>
+          <div className="small-info-el">
+            {animeData.animeResult.type.name}
+          </div>
+          <div className="small-info-el">{animeData.animeResult.year}</div>
+        </div>
+
+        <p className="description">{animeData.animeResult.description}</p>
+      </div>
+    </a>
+  );
+}
+
 export default function OngoingPage() {
   const [ongoings, setOngoings] = useState<Ongoing[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [latestAnime, setLatestAnime] = useState<Anime | null>(null);
 
   useEffect(() => {
     const fetchOngoings = async () => {
@@ -45,6 +91,14 @@ export default function OngoingPage() {
         const extractor = new YummyAnimeExtractor();
         const result = await extractor.getOngoings();
         setOngoings(result);
+
+        const history = SaveManager.getHistory();
+        if(history.length != 0) {
+          const anime = await extractor.getAnime(history[0]);
+          setLatestAnime(anime)
+        }
+
+
       } catch (err) {
         setError("Ошибка при загрузке данных");
         console.error(err);
@@ -69,16 +123,24 @@ export default function OngoingPage() {
   }
 
   return (
-    <div className="flip-cards-container">
-      {ongoings.map((obj, i) => (
-        <div
-          key={i}
-          className="flip-card-wrapper"
-          onClick={() => openAnime(obj)}
-        >
-          {OngoingPlate(obj)}
-        </div>
-      ))}
-    </div>
+    <>
+      {latestAnime &&
+      <div className="history-Background">
+        <h2 className="continue-watching"> Продолжение просмотра </h2>
+          {AnimePlate(latestAnime)}
+      </div>
+      }
+      <div className="flip-cards-container">
+        {ongoings.map((obj, i) => (
+          <div
+            key={i}
+            className="flip-card-wrapper"
+            onClick={() => openOngoing(obj)}
+          >
+            {OngoingPlate(obj)}
+          </div>
+        ))}
+      </div>
+    </>
   );
 }

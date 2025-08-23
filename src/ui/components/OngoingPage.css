@@ -1,3 +1,14 @@
+.history-Background {
+  /* display: flex; */
+  gap: 30px;
+  max-width: 1000px;  /* не больше */
+  margin: 0 auto; /* центр по X */
+
+  /* padding: 20px; */
+  background: var(--background-tertiary);
+  border-radius: 12px;
+}
+
 .ongoing-container {
   width: 100%;
   max-width: 1200px;

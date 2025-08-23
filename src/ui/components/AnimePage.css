@@ -7,6 +7,10 @@
   min-height: 100vh;
 }
 
+.continue-watching {
+  text-align: center;
+}
+
 .anime-page-info {
   display: flex;
   gap: 30px;
