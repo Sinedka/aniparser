@@ -14,6 +14,7 @@ export let closeAll: () => void;
 export let playAnime: (anime: Anime) => void;
 export let searchAnime: (query: string) => void;
 export let openHistory: () => void;
+export let openFavourites: () => void;
 
 let opened = Array<BodyElement>();
 
@@ -78,7 +79,16 @@ export default function GetBody() {
         opened.push(new BodyElement(BodyType.History));
         setCurrent(opened[opened.length - 1]);
       }
+    }
 
+    openFavourites = () => {
+      if (
+        opened.length < 1 ||
+        opened[opened.length - 1].type != BodyType.Favourites
+      ) {
+        opened.push(new BodyElement(BodyType.Favourites));
+        setCurrent(opened[opened.length - 1]);
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown, true);

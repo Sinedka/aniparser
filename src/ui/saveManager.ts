@@ -50,6 +50,14 @@ export class SaveManager {
       if (savedHistory) {
         this.history = JSON.parse(savedHistory) || [];
       }
+
+      const savedFavourites = localStorage.getItem(FAVOURITES_KEY);
+      if (savedFavourites) {
+        this.favourites = JSON.parse(savedFavourites) || [];
+      }
+
+
+
     } catch (error) {
       console.error("Error loading saved data:", error);
     }

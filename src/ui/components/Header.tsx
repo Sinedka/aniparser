@@ -1,6 +1,6 @@
-import "./header.css";
-import { closeAll, searchAnime } from "../body";
-import { FaSearch, FaHome } from "react-icons/fa";
+import "./Header.css";
+import { closeAll, searchAnime, openFavourites } from "../body";
+import { FaSearch, FaHome, FaHeart } from "react-icons/fa";
 import { useState, useRef } from "react";
 
 export default function Header() {
@@ -38,6 +38,9 @@ export default function Header() {
       </div>
 
       <div className="header-right">
+        <button onClick={() => openFavourites()}>
+          <FaHeart />
+        </button>
         <button
           onClick={() => {
             closeAll();

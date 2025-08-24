@@ -61,7 +61,7 @@ export default function FavouritesPage() {
   return (
     <div>
       <h1>Избранные</h1>
-      <InfiniteScroll fetchFn={getAnime} args={favourites} />;
+      <InfiniteScroll fetchFn={getAnime} args={favourites} />
     </div>
   )
 }

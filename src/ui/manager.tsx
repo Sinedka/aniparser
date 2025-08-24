@@ -3,13 +3,15 @@ import AnimePage from "./components/AnimePage";
 import Player from "./components/player/player";
 import HistoryPage from "./components/HistoryPage";
 import { Anime } from "../api/source/Yumme_anime_ru";
+import FavouritesPage from "./components/FavouritesPage";
 
 
 export enum BodyType {
   Search,
   Anime,
   Player,
-  History
+  History,
+  Favourites
 }
 
 export class BodyElement {
@@ -35,6 +37,8 @@ export class BodyElement {
       return <AnimePage url={this.value} />;
     if (this.type === BodyType.History)
       return <HistoryPage />;
+    if (this.type === BodyType.Favourites)
+      return <FavouritesPage />;
 
     console.warn("Неизвестный тип компонента:", this.type);
     return <div>Контент не найден</div>;
