@@ -5,6 +5,7 @@ import { playAnime, openAnimePage } from "../body";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
+import HeartToggle from "./HeartToggle";
 
 // Интерфейс для хранения прогресса просмотра
 
@@ -54,7 +55,7 @@ export default function AnimePage({ url }: { url: string }) {
             className="anime-page-thumbnail"
             src={
               animeData.animeResult.poster.huge &&
-              !animeData.animeResult.poster.huge.startsWith("http")
+                !animeData.animeResult.poster.huge.startsWith("http")
                 ? `https:${animeData.animeResult.poster.huge}`
                 : animeData.animeResult.poster.huge
             }
@@ -98,6 +99,13 @@ export default function AnimePage({ url }: { url: string }) {
               {getWatchButtonText()}
             </button>
           )}
+          <div className="playlists">
+            <HeartToggle 
+              enabledByDefault={SaveManager.CheckIsFavourite(animeData.animeResult.anime_url)} 
+              onEnable={() => SaveManager.addAnimeToFavourites(animeData.animeResult.anime_url)} 
+              onDisable={() => SaveManager.removeAnimeFromFavourites(animeData.animeResult.anime_url)}
+            />
+          </div>
         </div>
       </div>
       <div className="anime-page-description-container">
@@ -121,7 +129,7 @@ export default function AnimePage({ url }: { url: string }) {
                         className="viewing-order-item-thumbnail"
                         src={
                           item.poster.huge &&
-                          !item.poster.huge.startsWith("http")
+                            !item.poster.huge.startsWith("http")
                             ? `https:${item.poster.huge}`
                             : item.poster.huge
                         }

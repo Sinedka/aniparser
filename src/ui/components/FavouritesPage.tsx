@@ -4,15 +4,6 @@ import { openAnimePage } from "../body";
 import { YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
 import { SaveManager } from "../saveManager";
 
-const fetchOne = async (i: number): Promise<React.ReactNode | null> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-        resolve(<li>Элемент {i}</li>);
-    }, 80);
-  });
-};
-
-
 function AnimePlate(animeData: Anime) {
   return (
     <a
@@ -65,12 +56,12 @@ const getAnime = async (url: string) => {
 
 
 
-export default function HistoryPage() {
-  const history = SaveManager.getHistory();
+export default function FavouritesPage() {
+  const favourites = SaveManager.getFavourites();
   return (
     <div>
-      <h1>История просмотров</h1>
-      <InfiniteScroll fetchFn={getAnime} args={history} />;
+      <h1>Избранные</h1>
+      <InfiniteScroll fetchFn={getAnime} args={favourites} />;
     </div>
   )
 }

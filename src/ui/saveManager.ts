@@ -117,7 +117,6 @@ export class SaveManager {
     this.history = this.history.filter(item => item !== url);
     this.history.unshift(url);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(this.history));
-    console.log(this.history);
   }
 
   static getHistory(): string[] {
@@ -128,8 +127,13 @@ export class SaveManager {
     this.favourites = this.favourites.filter(item => item !== url);
     this.favourites.unshift(url);
     localStorage.setItem(FAVOURITES_KEY, JSON.stringify(this.favourites));
-    console.log(this.favourites);
   }
+
+  static removeAnimeFromFavourites(url:string): void {
+    this.favourites = this.favourites.filter(item => item !== url);
+    localStorage.setItem(FAVOURITES_KEY, JSON.stringify(this.favourites));
+  }
+
 
   static getFavourites(): string[] {
     return this.favourites;

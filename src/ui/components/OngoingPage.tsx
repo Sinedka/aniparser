@@ -4,6 +4,7 @@ import { YummyAnimeExtractor, Ongoing, Anime } from "../../api/source/Yumme_anim
 import { openAnimePage, openHistory } from "../body";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
+import HeartToggle from "./HeartToggle";
 
 async function openOngoing(ongoing: Ongoing) {
   openAnimePage(ongoing.ongoingResult.anime_url);
@@ -124,6 +125,7 @@ export default function OngoingPage() {
 
   return (
     <>
+      <HeartToggle/>
       {latestAnime &&
       <div className="history-Background">
         <h2 className="continue-watching"> Продолжение просмотра </h2>

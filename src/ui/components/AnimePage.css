@@ -7,6 +7,15 @@
   min-height: 100vh;
 }
 
+.playlists {
+  order: 4;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  transform: translateX(-10px);
+  z-index: 999;
+}
+
 .continue-watching {
   text-align: center;
 }
@@ -136,7 +145,7 @@
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.5px;
-  order: 4;
+  order: 5;
   align-self: flex-start;
   margin: 0;
 }
