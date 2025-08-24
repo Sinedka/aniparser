@@ -125,7 +125,6 @@ export default function OngoingPage() {
 
   return (
     <>
-      <HeartToggle/>
       {latestAnime &&
       <div className="history-Background">
         <h2 className="continue-watching"> Продолжение просмотра </h2>
