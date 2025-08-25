@@ -14,7 +14,7 @@ jobs:
         with:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          parse_mode: Markdown
+          parse_mode: MarkdownV2
           message: |
             📝 Новая [Issue](${{ github.event.issue.html_url }}): ${{ github.event.issue.title }}
             Автор: ${{ github.event.issue.user.login }}
@@ -26,7 +26,7 @@ jobs:
         with:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          parse_mode: Markdown
+          parse_mode: MarkdownV2
           message: |
             ✅ [Issue](${{ github.event.issue.html_url }}) закрыта: ${{ github.event.issue.title }}
           
