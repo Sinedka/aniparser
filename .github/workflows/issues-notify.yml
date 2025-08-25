@@ -1,0 +1,26 @@
+name: Notify Telegram on Issue Events
+
+on:
+  issues:
+    types: [opened, closed]
+
+jobs:
+  telegram-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram message
+        uses: appleboy/telegram-action@master
+        with:
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          parse_mode: Markdown
+          message: |
+            ${{ github.event.action == 'opened' && format('📝 Новая [Issue]({0}): {1}\nАвтор: {2}\nОписание: {3}',
+              github.event.issue.html_url,
+              github.event.issue.title,
+              github.event.issue.user.login,
+              github.event.issue.body) }}
+
+            ${{ github.event.action == 'closed' && format('✅ [Issue]({0}) закрыта: {1}', 
+              github.event.issue.html_url,
+              github.event.issue.title) }}
