@@ -1,0 +1,77 @@
+.window-controll-buttons button{
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #212832;
+  border-radius: 100%;
+  height: var(--height);
+  aspect-ratio: 1;
+  position: absolute;
+  right: 0;
+  top: calc(50% - var(--height) / 2);
+  transform: translateX(0); /* изначально скрыта */
+  transition: transform 0.3s ease;
+  z-index: 3;
+}
+
+
+.window-controll-buttons:hover .fullscreen-window {
+  transform: translateX(calc(-1 * (var(--height) + var(--gap))));
+}
+
+.window-controll-buttons .fullscreen-window{
+  z-index: 2; /* под главной кнопкой */
+}
+
+.window-controll-buttons .fullscreen-window:hover{
+  background: #28C840;
+}
+
+
+.window-controll-buttons:hover .hide-window {
+  transform: translateX(calc(-1 * (var(--height) * 2 + var(--gap) * 2)));
+}
+
+.window-controll-buttons .hide-window {
+  z-index: 1;
+}
+
+.window-controll-buttons .hide-window:hover {
+  background: #FDBC2E;
+}
+
+
+.window-controll-buttons:hover .close-window {
+  transform: rotate(135deg);
+}
+
+.window-controll-buttons .close-window:hover {
+  background: #FD5F57;
+}
+
+
+.window-controll-buttons .close-window {
+  transform: rotate(45deg);
+}
+
+
+.window-controll-buttons:hover{
+  width: calc(var(--height) * 3 + var(--gap) * 2); /* расширяем, чтобы вместить вторую кнопку */
+}
+
+.window-controll-buttons {
+  --height: 30px;
+  --gap: 10px;
+  position: relative;
+  width: var(--height);
+  height: var(--height);
+  transition: width 0.3s ease;
+  margin-right: 15px;
+}
+
+
+.window-controll-buttons button svg{
+  margin: 5px;
+  color: white;
+}

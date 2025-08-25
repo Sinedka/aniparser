@@ -2,6 +2,7 @@ import "./Header.css";
 import { closeAll, searchAnime, openFavourites } from "../body";
 import { FaSearch, FaHome, FaHeart } from "react-icons/fa";
 import { useState, useRef } from "react";
+import WindowControllButtons from "./WindowControlButtons";
 
 export default function Header() {
   const [searchValue, setSearchValue] = useState("");
@@ -31,17 +32,17 @@ export default function Header() {
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
-          <button onClick={handleSearch}>
+          <button className="header-button" onClick={handleSearch}>
             <FaSearch />
           </button>
         </div>
       </div>
 
       <div className="header-right">
-        <button onClick={() => openFavourites()}>
+        <button className="header-button" onClick={() => openFavourites()}>
           <FaHeart />
         </button>
-        <button
+        <button className="header-button"
           onClick={() => {
             closeAll();
           }}
@@ -49,6 +50,7 @@ export default function Header() {
           <FaHome />
         </button>
       </div>
+      <WindowControllButtons />
     </div>
   );
 }
