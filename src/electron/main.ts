@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import { isDev } from "./utils.js";
 
@@ -10,7 +10,10 @@ app.whenReady().then(() => {
     width: 800,
     height: 600,
     webPreferences: {
+      preload: __dirname + '/preload.js', // подключаем preload
       webSecurity: false,
+      contextIsolation: true, // обязательно для безопасности
+      nodeIntegration: false
     },
   });
 
@@ -19,4 +22,8 @@ app.whenReady().then(() => {
   } else {
     mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
   }
+
+  ipcMain.on('close-app', () => {
+    app.quit(); // Закрывает всё приложение
+  });
 });

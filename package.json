@@ -1,12 +1,10 @@
 {
   "name": "aniparser",
-  "private": true,
   "version": "0.3.1",
   "author": {
     "name": "sinedka",
     "email": "dennnn888@gmail.com"
   },
-  "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "npm-run-all --parallel dev:react dev:electron",
