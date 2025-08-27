@@ -1,12 +1,26 @@
 import "./Header.css";
 import { closeAll, searchAnime, openFavourites } from "../body";
 import { FaSearch, FaHome, FaHeart } from "react-icons/fa";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import WindowControllButtons from "./WindowControlButtons";
 
 export default function Header() {
   const [searchValue, setSearchValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleMouseDown = useCallback(() => {
+    console.log("⏺ mouse down на drag-region");
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    console.log("✅ mouse up на drag-region");
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.buttons === 1) {
+      console.log("➡️ двигаем мышь по drag-region:", e.clientX, e.clientY);
+    }
+  }, []);
 
   const handleSearch = () => {
     if (searchValue.length > 2) {

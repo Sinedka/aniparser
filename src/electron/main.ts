@@ -2,9 +2,10 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import { isDev } from "./utils.js";
 
-app.setName("aniparser")
+let mainWindow: BrowserWindow | null = null;
+
 app.whenReady().then(() => {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     transparent: process.platform === "win32" ? false : true,
     frame: process.platform === "win32" ? true : false,
     width: 800,
@@ -24,6 +25,23 @@ app.whenReady().then(() => {
   }
 
   ipcMain.on('close-app', () => {
-    app.quit(); // Закрывает всё приложение
+    window
   });
 });
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.on('minimize-window', () => {
+    mainWindow?.minimize(); // сворачиваем окно
+});
+
+ipcMain.on('toggle-fullscreen', () => {
+    mainWindow?.setFullScreen(!mainWindow?.isFullScreen()); // переключаем fullscreen
+});
+
+  ipcMain.on('close-app', () => {
+    app.quit(); // Закрывает всё приложение
+  });
+

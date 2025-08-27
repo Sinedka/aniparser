@@ -4,7 +4,7 @@ import "./WindowControlButtons.css"
 export default function WindowControllButtons(){
   return(
     <div className="window-controll-buttons">
-      <button className="close-window">
+      <button className="close-window" onClick={() => window.electronAPI.closeApp()}>
         <FaPlus />
       </button>
       <button className="fullscreen-window">
@@ -14,7 +14,6 @@ export default function WindowControllButtons(){
       <button className="hide-window">
         <FaMinus />
       </button>
-
     </div>
   )
 
