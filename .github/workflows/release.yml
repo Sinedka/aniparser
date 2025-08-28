@@ -76,7 +76,7 @@ jobs:
       - name: Publish AUR package
         uses: KSXGitHub/github-actions-deploy-aur@<TAG>
         with:
-          pkgname: my-awesome-package
+          pkgname: aniparser
           pkgbuild: ./PKGBUILD
           updpkgsums: true
           commit_username: ${{ secrets.AUR_USERNAME }}
