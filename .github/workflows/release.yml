@@ -59,17 +59,3 @@ jobs:
           files: dist/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build and push AUR package in Arch container
-        uses: docker://archlinux:latest
-        env:
-          AUR_USER: ${{ secrets.AUR_USER }}
-          AUR_KEY: ${{ secrets.AUR_KEY }}
-        run: |
-          pacman -Syu --noconfirm pkgtools
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
-          cd /github/workspace
-          ./prepare_aur.sh
