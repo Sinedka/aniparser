@@ -1,6 +1,7 @@
 {
   "appId": "com.aniparser.app",
   "files": ["dist-react", "dist-electron"],
+  "publish": null,
   "mac": {
     "target": ["dmg"],
     "icon": "assets/icon.png"
