@@ -5,6 +5,7 @@
   "mac": {
     "target": ["dmg"],
     "icon": "assets/icon.png"
+    "identity": null
   },
   "win": {
     "target": ["nsis"],
