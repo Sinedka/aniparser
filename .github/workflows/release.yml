@@ -48,7 +48,9 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: softprops/action-gh-release@v2
         with:
-          files: "dist/*.AppImage dist-full.tar.gz"
+          files: |
+            dist/*.AppImage
+            dist-full.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
