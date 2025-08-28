@@ -7,7 +7,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: "dist-react",
+    outDir: "../../dist-react",
         chunkSizeWarningLimit: 1500,
   },
   base: "./",
