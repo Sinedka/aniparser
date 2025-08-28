@@ -24,17 +24,22 @@ jobs:
 
       - name: Install dependencies
         run: npm i
-
-      - name: Build Electron app
+        
+      - name: Build Electron app (Windows)
+        if: matrix.os == 'windows-latest'
         run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
-            npm run dist:linux
-            ./prepare_release.sh
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            npm run dist:mac
-          else
-            npm run dist:win
-          fi
+          npm run dist:win
+        
+      - name: Build Electron app (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          npm run dist:linux
+          ./prepare_release.sh
+        
+      - name: Build Electron app (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          npm run dist:mac
 
       - name: Upload to GitHub Release (Windows)
         if: matrix.os == 'windows-latest'
