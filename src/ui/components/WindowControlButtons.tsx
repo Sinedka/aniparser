@@ -7,7 +7,7 @@ export default function WindowControllButtons() {
 
   useEffect(() => {
     // Первичная проверка
-    setIsFullscreen(!window.electronAPI.isFullscreen());
+    setIsFullscreen(window.electronAPI.isFullscreen());
 
     // Подписка на внешние изменения fullscreen
     window.electronAPI.onFullscreenChanged((state) => {
