@@ -39,6 +39,7 @@ export default function Header() {
       <div className="header-center">
         <div className="search-container">
           <input
+            className="search-input"
             ref={inputRef}
             type="text"
             placeholder="Поиск аниме..."

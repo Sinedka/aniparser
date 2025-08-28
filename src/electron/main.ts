@@ -24,13 +24,22 @@ app.whenReady().then(() => {
     mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
   }
 
-  ipcMain.on('close-app', () => {
-    window
+  mainWindow?.on("enter-full-screen", () => {
+    mainWindow?.webContents.send("fullscreen-changed", true);
   });
+
+  mainWindow?.on("leave-full-screen", () => {
+    mainWindow?.webContents.send("fullscreen-changed", false);
+  });
+
 });
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.handle("is-fullscreen", () => {
+  return mainWindow?.isFullScreen();
 });
 
 ipcMain.on('minimize-window', () => {
@@ -41,7 +50,7 @@ ipcMain.on('toggle-fullscreen', () => {
     mainWindow?.setFullScreen(!mainWindow?.isFullScreen()); // переключаем fullscreen
 });
 
-  ipcMain.on('close-app', () => {
-    app.quit(); // Закрывает всё приложение
-  });
+ipcMain.on('close-app', () => {
+  app.quit(); // Закрывает всё приложение
+});
 
