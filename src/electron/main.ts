@@ -24,31 +24,31 @@ app.whenReady().then(() => {
     mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
   }
 
-  mainWindow?.on("enter-full-screen", () => {
+  mainWindow?.on("maximize", () => {
     mainWindow?.webContents.send("fullscreen-changed", true);
   });
 
-  mainWindow?.on("leave-full-screen", () => {
+  mainWindow?.on("unmaximize", () => {
     mainWindow?.webContents.send("fullscreen-changed", false);
   });
 
+  ipcMain.handle("is-fullscreen", () => {
+    return mainWindow?.isMaximized();
+  });
+
+  ipcMain.on('minimize-window', () => {
+    mainWindow?.minimize(); // сворачиваем окно
+  });
+
+  ipcMain.on('toggle-fullscreen', () => {
+    mainWindow?.isMaximized() ? mainWindow.unmaximize() : mainWindow?.maximize();
+  });
 });
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle("is-fullscreen", () => {
-  return mainWindow?.isFullScreen();
-});
-
-ipcMain.on('minimize-window', () => {
-    mainWindow?.minimize(); // сворачиваем окно
-});
-
-ipcMain.on('toggle-fullscreen', () => {
-    mainWindow?.setFullScreen(!mainWindow?.isFullScreen()); // переключаем fullscreen
-});
 
 ipcMain.on('close-app', () => {
   app.quit(); // Закрывает всё приложение
