@@ -66,22 +66,3 @@ jobs:
           files: dist/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update PKGBUILD version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "Building version $VERSION"
-          sed -i "s/^pkgver=.*/pkgver=$VERSION/" PKGBUILD
-
-      - name: Publish AUR package
-        if: matrix.os == 'ubuntu-latest'
-        uses: KSXGitHub/github-actions-deploy-aur@<TAG>
-        with:
-          pkgname: aniparser
-          pkgbuild: ./PKGBUILD
-          updpkgsums: true
-          commit_username: ${{ secrets.AUR_USERNAME }}
-          commit_email: ${{ secrets.AUR_EMAIL }}
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: Update AUR package
-          ssh_keyscan_types: rsa,ecdsa,ed25519
