@@ -1,0 +1,9 @@
+{
+  "name": "aniparser",
+  "version": "0.3.2",
+  "author": {
+    "name": "sinedka",
+    "email": "dennnn888@gmail.com"
+  },
+  "main": "dist-electron/main.js",
+}

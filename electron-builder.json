@@ -2,16 +2,16 @@
   "appId": "com.aniparser.app",
   "files": ["dist-react", "dist-electron"],
   "mac": {
-    "target": ["zip", "dir"],
+    "target": ["dmg"],
     "icon": "assets/icon.png"
   },
   "win": {
-    "target": ["msi"],
+    "target": ["nsis"],
     "icon": "assets/icon.png"
   },
   "linux": {
     "icon": "assets/icon.png",
-    "target": ["AppImage", "tar.gz"],
+    "target": ["AppImage"],
     "category": "Utility"
   }
 }
