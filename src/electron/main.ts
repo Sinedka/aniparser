@@ -6,8 +6,8 @@ let mainWindow: BrowserWindow | null = null;
 
 app.whenReady().then(() => {
   mainWindow = new BrowserWindow({
-    transparent: true,
-    frame: process.platform === "win32" ? true : false,
+    transparent: process.platform === "win32" ? false : true,
+    frame: false,
     width: 800,
     height: 600,
     webPreferences: {
