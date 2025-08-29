@@ -7,12 +7,6 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
-    let
-        forEachSystem = fn:
-        nixpkgs.lib.genAttrs
-          nixpkgs.lib.platforms.linux
-            (system: fn system nixpkgs.legacyPackages.${system});
-    in
     {
       packages = forEachSystem (system: pkgs: rec {
         aniparser = pkgs.callPackage ./default.nix {  };
