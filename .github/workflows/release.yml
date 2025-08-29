@@ -87,3 +87,16 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: Update AUR package
           ssh_keyscan_types: rsa,ecdsa,ed25519
+
+      - name: Send Telegram message
+        if: matrix.os == 'ubuntu-latest'
+        uses: appleboy/telegram-action@master
+        with:
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          message: |
+            Новый релиз!
+            Версия: ${{ github.event.release.tag_name }}
+            Автор: ${{ github.event.release.author.login }}
+            Описание: ${{ github.event.release.body }}
+            Ссылка: ${{ github.event.release.html_url }}
