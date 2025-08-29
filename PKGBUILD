@@ -1,7 +1,7 @@
 # Maintainer: Your Name <dennnn8888@gmail.com>
 pkgname=aniparser
 pkgver=
-pkgrel=1
+pkgrel=2
 pkgdesc="AniParser Electron application"
 arch=('x86_64')
 url="https://github.com/Sinedka/aniparser"
@@ -18,7 +18,7 @@ package() {
   install -dm755 "$pkgdir/usr/lib/$pkgname"
   install -dm755 "$pkgdir/usr/bin"
 
-  install -Dm644 "${srcdir}"/dist-electron/icon.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/aniparser.png"
+  install -Dm644 "${srcdir}"/dist-full/icon.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/aniparser.png"
   cp -r "$srcdir/dist-full/." "$pkgdir/usr/lib/$pkgname/"
 
   # Создаём desktop entry
