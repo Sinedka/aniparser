@@ -16,5 +16,6 @@ jobs:
             Новый релиз!
             Версия: ${{ github.event.release.tag_name }}
             Автор: ${{ github.event.release.author.login }}
-            Описание: ${{ github.event.release.body }}
+            Описание: 
+            ${{ github.event.release.body }}
             Ссылка: ${{ github.event.release.html_url }}
