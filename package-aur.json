@@ -5,5 +5,5 @@
     "name": "sinedka",
     "email": "dennnn888@gmail.com"
   },
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/main.js"
 }
