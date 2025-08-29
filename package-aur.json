@@ -8,5 +8,5 @@
   "main": "dist-electron/main.js",
   "dependencies": {
     "electron-window-state": "^5.0.3"
-  },
+  }
 }
