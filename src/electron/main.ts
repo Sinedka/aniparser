@@ -28,6 +28,13 @@ app.whenReady().then(() => {
 
   if (isDev()) {
     mainWindow.loadURL("http://localhost:5123");
+    
+    // Установка React DevTools
+    const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
+
+    installExtension(REACT_DEVELOPER_TOOLS)
+      .then((name: any) => console.log(`Установлено: ${name}`))
+      .catch((err: any) => console.log('Ошибка установки DevTools:', err));
   } else {
     mainWindow.loadFile(path.join(app.getAppPath(), "/dist-react/index.html"));
   }

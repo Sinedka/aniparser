@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Anime } from "../../../api/source/Yumme_anime_ru";
 import { VideoIDs } from "./types";
 import "./playerControls.css";
-import CustomSelect from "./CustomSelect";
+import CustomSelect from "../CustomSelect";
 import ReactDOM from "react-dom";
 
 type PlayerControlsProps = {

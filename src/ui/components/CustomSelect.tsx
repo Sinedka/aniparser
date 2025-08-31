@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import "./CustomSelect.css";
 
 interface Option {
@@ -32,7 +32,7 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
     const selectRef = useRef<HTMLDivElement>(null);
     const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-    const selectedOption = options.find((option) => option.value === value);
+    const selectedOption = options.find((option) => option.value == value);
 
     const closeSelect = () => {
       setIsOpen(false);
@@ -73,6 +73,22 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
       };
     }, []);
 
+    const handleClick = useCallback(
+      (event: MouseEvent) => {
+        const target = event.target as Node;
+
+        // Проверяем, был ли клик по одному из переданных элементов
+        const clickedOnCloseElement = closeOnRefs.some(
+          (ref) =>
+            ref.current &&
+            ref.current.contains(target) &&
+            ref.current !== selectRef.current,
+        );
+
+        if (clickedOnCloseElement) closeSelect();
+      }, [closeOnRefs]
+    )
+
     // Обработка кликов для закрытия селекта
     useEffect(() => {
       const handleClick = (event: MouseEvent) => {
@@ -96,15 +112,33 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
           closeSelect();
         }
       };
-
-      document.addEventListener("mousedown", handleClick);
-      document.addEventListener("keydown", handleEscKey);
+      if (isOpen) {
+        document.addEventListener("mousedown", handleClick);
+        document.addEventListener("keydown", handleEscKey);
+      }
 
       return () => {
         document.removeEventListener("mousedown", handleClick);
         document.removeEventListener("keydown", handleEscKey);
       };
     }, [isOpen, closeOnRefs]);
+
+
+    useEffect(() => {
+      function handleClickOutside(e) {
+        if (menuRef.current && !menuRef.current.contains(e.target)) {
+          setIsOpen(false);
+        }
+      }
+
+      if (isOpen) {
+        document.addEventListener("mousedown", handleClickOutside, true);
+      } else {
+        document.removeEventListener("mousedown", handleClickOutside, true);
+      }
+
+      return () => document.removeEventListener("mousedown", handleClickOutside, true);
+    }, [isOpen]);
 
     return (
       <div
@@ -122,9 +156,8 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
             {options.map((option) => (
               <div
                 key={option.value}
-                className={`select-option ${
-                  option.value === value ? "selected" : ""
-                }`}
+                className={`select-option ${option.value === value ? "selected" : ""
+                  }`}
                 onClick={() => handleOptionClick(option.value)}
               >
                 {option.label}

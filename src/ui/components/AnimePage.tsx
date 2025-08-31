@@ -6,17 +6,22 @@ import { useEffect, useState } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
 import HeartToggle from "./HeartToggle";
-
-// Интерфейс для хранения прогресса просмотра
+import { use } from "video.js/dist/types/tech/middleware";
+import CustomSelect from "./CustomSelect";
 
 export default function AnimePage({ url }: { url: string }) {
   const [animeData, setAnimeData] = useState<Anime | null>(null);
+  const [AnimeStatus, setStatus] = useState<number>(SaveManager.checkAnimeStatus(url));
 
   useEffect(() => {
     setAnimeData(null);
     const extractor = new YummyAnimeExtractor();
     extractor.getAnime(url).then((anime) => setAnimeData(anime));
   }, [url]);
+
+  useEffect(() => {
+    SaveManager.setAnimeStatus(url, AnimeStatus);
+  }, [AnimeStatus])
 
   if (!animeData) return <LoadingSpinner />;
 
@@ -94,7 +99,10 @@ export default function AnimePage({ url }: { url: string }) {
           {animeData.players && animeData.players.length > 0 && (
             <button
               className="watch-button"
-              onClick={() => playAnime(animeData)}
+              onClick={() => {
+                if(AnimeStatus == 0 || AnimeStatus == 1 || AnimeStatus == 4) SaveManager.setAnimeStatus(url, 2);
+                playAnime(animeData);
+              }}
             >
               {getWatchButtonText()}
             </button>
@@ -105,6 +113,50 @@ export default function AnimePage({ url }: { url: string }) {
               onEnable={() => SaveManager.addAnimeToFavourites(animeData.animeResult.anime_url)} 
               onDisable={() => SaveManager.removeAnimeFromFavourites(animeData.animeResult.anime_url)}
             />
+            <select
+              className="select-status"
+              value={AnimeStatus}
+              onChange={(e) => setStatus(Number(e.target.value))}
+            >
+              <option value='0'> Hесмотрел </option>
+              <option value='1'> Запланированно </option>
+              <option value='2'> Смотрю </option>
+              <option value='3'> Просмотренно </option>
+              <option value='4'> Отложенно </option>
+              <option value='5'> Брошенно </option>
+              <option value='6'> Не буду смотреть </option>
+
+            </select>
+            <CustomSelect options={[
+              {
+                value: 0,
+                label: 'Hесмотрел',
+              },
+              {
+                value: 1,
+                label: 'Запланированно',
+              },
+              {
+                value: 2,
+                label: 'Смотрю',
+              },
+              {
+                value: 3,
+                label: 'Просмотренно',
+              },
+              {
+                value: 4,
+                label: 'Отложенно',
+              },
+              {
+                value: 5,
+                label: 'Брошенно',
+              },
+              {
+                value: 6,
+                label: 'Не буду смотреть',
+              },
+            ]} value={AnimeStatus} onChange={(e) => setStatus(Number(e))} />
           </div>
         </div>
       </div>
