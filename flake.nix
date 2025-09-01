@@ -8,12 +8,6 @@
 
   outputs = { self, nixpkgs, flake-utils }:
     {
-      packages = forEachSystem (system: pkgs: rec {
-        aniparser = pkgs.callPackage ./default.nix {  };
-
-        default = aniparser;
-      });
-
       devShells = forEachSystem (system: pkgs: rec {
         default = pkgs.mkShell {
           buildInputs = with pkgs; [
