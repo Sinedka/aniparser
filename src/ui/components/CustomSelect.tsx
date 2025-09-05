@@ -125,8 +125,9 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
 
 
     useEffect(() => {
-      function handleClickOutside(e) {
-        if (menuRef.current && !menuRef.current.contains(e.target)) {
+      function handleClickOutside(e: MouseEvent) {
+        if(!e.target) return
+        if (selectRef.current && !selectRef.current.contains(e.target)) {
           setIsOpen(false);
         }
       }
