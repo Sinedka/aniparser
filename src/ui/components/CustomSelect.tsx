@@ -12,7 +12,7 @@ interface CustomSelectProps {
   onChange: (value: number) => void;
   className?: string;
   onActiveChange?: (isActive: boolean) => void;
-  closeOnRefs?: React.RefObject<HTMLDivElement | null>[];
+  needOverlay?: boolean;
 }
 
 const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
@@ -23,7 +23,7 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
       onChange,
       className = "",
       onActiveChange,
-      closeOnRefs = [],
+      needOverlay = true,
     },
     ref,
   ) => {
@@ -73,70 +73,19 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
       };
     }, []);
 
-    const handleClick = useCallback(
-      (event: MouseEvent) => {
-        const target = event.target as Node;
-
-        // Проверяем, был ли клик по одному из переданных элементов
-        const clickedOnCloseElement = closeOnRefs.some(
-          (ref) =>
-            ref.current &&
-            ref.current.contains(target) &&
-            ref.current !== selectRef.current,
-        );
-
-        if (clickedOnCloseElement) closeSelect();
-      }, [closeOnRefs]
-    )
-
-    // Обработка кликов для закрытия селекта
-    useEffect(() => {
-      const handleClick = (event: MouseEvent) => {
-        const target = event.target as Node;
-
-        // Проверяем, был ли клик по одному из переданных элементов
-        const clickedOnCloseElement = closeOnRefs.some(
-          (ref) =>
-            ref.current &&
-            ref.current.contains(target) &&
-            ref.current !== selectRef.current,
-        );
-
-        if (clickedOnCloseElement) closeSelect();
-      };
-
-      const handleEscKey = (event: KeyboardEvent) => {
-        if (event.key === "Escape" && isOpen) {
-          event.stopPropagation();
-          event.preventDefault();
-          closeSelect();
-        }
-      };
-      if (isOpen) {
-        document.addEventListener("mousedown", handleClick);
-        document.addEventListener("keydown", handleEscKey);
-      }
-
-      return () => {
-        document.removeEventListener("mousedown", handleClick);
-        document.removeEventListener("keydown", handleEscKey);
-      };
-    }, [isOpen, closeOnRefs]);
-
-
     useEffect(() => {
       function handleClickOutside(e: MouseEvent) {
-        if(!e.target) return
-        if (selectRef.current && !selectRef.current.contains(e.target)) {
+        e.preventDefault();   // отменяет стандартное действие (например, фокус или выделение)
+        e.stopPropagation();  // останавливает всплытие события
+        console.log("Нажатие заблокировано!");
+        if (!e.target) return
+        if (selectRef.current && !selectRef.current.contains(e.target as Node)) {
           setIsOpen(false);
         }
       }
+      if (isOpen) document.addEventListener("mousedown", handleClickOutside, true);
+      else document.removeEventListener("mousedown", handleClickOutside, true);
 
-      if (isOpen) {
-        document.addEventListener("mousedown", handleClickOutside, true);
-      } else {
-        document.removeEventListener("mousedown", handleClickOutside, true);
-      }
 
       return () => document.removeEventListener("mousedown", handleClickOutside, true);
     }, [isOpen]);
