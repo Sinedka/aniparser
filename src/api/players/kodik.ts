@@ -488,7 +488,7 @@ export class Kodik extends BaseVideoExtractor {
         return [];
       }
 
-      let responseApiJson: Record<string, any> | null = null;
+      let responseApiJson: Record<string, any>;
       try {
         responseApiJson = await responseApi.json();
       } catch (error) {
