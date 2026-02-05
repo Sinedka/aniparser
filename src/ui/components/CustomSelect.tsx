@@ -13,6 +13,7 @@ interface CustomSelectProps {
   className?: string;
   onActiveChange?: (isActive: boolean) => void;
   needOverlay?: boolean;
+  closeOnRefs?: React.RefObject<HTMLElement | null>[];
 }
 
 const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
@@ -24,6 +25,7 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
       className = "",
       onActiveChange,
       needOverlay = true,
+      closeOnRefs = [],
     },
     ref,
   ) => {
@@ -78,8 +80,15 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
         e.preventDefault();   // отменяет стандартное действие (например, фокус или выделение)
         e.stopPropagation();  // останавливает всплытие события
         console.log("Нажатие заблокировано!");
-        if (!e.target) return
-        if (selectRef.current && !selectRef.current.contains(e.target as Node)) {
+        if (!e.target) return;
+        const targetNode = e.target as Node;
+        const isInsideSelect =
+          selectRef.current && selectRef.current.contains(targetNode);
+        const isInsideCloseRefs = closeOnRefs.some((refItem) =>
+          refItem.current?.contains(targetNode),
+        );
+
+        if (!isInsideSelect && !isInsideCloseRefs) {
           setIsOpen(false);
         }
       }
@@ -88,7 +97,7 @@ const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
 
 
       return () => document.removeEventListener("mousedown", handleClickOutside, true);
-    }, [isOpen]);
+    }, [isOpen, closeOnRefs]);
 
     return (
       <div
