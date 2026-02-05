@@ -154,8 +154,13 @@ export class Kodik extends BaseVideoExtractor {
 
     let base64Url = this.decryptUrl(urlEncoded);
 
-    const decodedUrl = atob(base64Url);
-    return decodedUrl.startsWith("https") ? decodedUrl : `https:${decodedUrl}`;
+    try {
+      const decodedUrl = atob(base64Url);
+      return decodedUrl.startsWith("https") ? decodedUrl : `https:${decodedUrl}`;
+    } catch (error) {
+      console.warn("Error decoding url:", error);
+      return "";
+    }
   }
 
   /**
@@ -266,13 +271,17 @@ export class Kodik extends BaseVideoExtractor {
     const refSignMatch = /var\s*ref_sign\s+=\s+[\'\"](.*?)[\'\"];/.exec(
       responseText
     );
-    const typeMatch = /videoInfo\.type\s*=\s*[\'\"](.*?)[\'\"];/.exec(
-      responseText
-    );
-    const hashMatch = /videoInfo\.hash\s*=\s*[\'\"](.*?)[\'\"];/.exec(
-      responseText
-    );
-    const idMatch = /videoInfo\.id\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText);
+    const typeMatch =
+      /videoInfo\.type\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText) ||
+      /vInfo\.type\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText) ||
+      /var\s+type\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText);
+    const hashMatch =
+      /videoInfo\.hash\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText) ||
+      /vInfo\.hash\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText);
+    const idMatch =
+      /videoInfo\.id\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText) ||
+      /vInfo\.id\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText) ||
+      /var\s+videoId\s*=\s*[\'\"](.*?)[\'\"];/.exec(responseText);
 
     const apiPayload: KodikAPIPayload = {
       d: dMatch?.[1] || "",
@@ -291,6 +300,12 @@ export class Kodik extends BaseVideoExtractor {
     const playerJsPathMatch =
       /<script\s*type="text\/javascript"\s*src="(\/assets\/js\/app\..*?)">/i.exec(
         responseText
+      ) ||
+      /<script\s*type="text\/javascript"\s*src="(\/assets\/js\/app\.player_.*?\.js)"><\/script>/i.exec(
+        responseText
+      ) ||
+      /var\s+playerLink\s*=\s*\[\s*["'](\/assets\/js\/app\..*?\.js)["']\s*\];/i.exec(
+        responseText
       );
     const playerJsPath = playerJsPathMatch?.[1] || "";
 
@@ -299,6 +314,56 @@ export class Kodik extends BaseVideoExtractor {
       apiPayload,
       playerJsPath,
     };
+  }
+
+  /**
+   * Проверяет, что все обязательные поля API заполнены
+   * @param apiPayload Данные для API
+   * @returns true, если поля заполнены
+   */
+  private getMissingApiPayloadFields(
+    apiPayload: KodikAPIPayload
+  ): Array<keyof KodikAPIPayload> {
+    const required = [
+      "d",
+      "d_sign",
+      "pd",
+      "pd_sign",
+      "ref",
+      "ref_sign",
+      "type",
+      "hash",
+      "id",
+    ] as const;
+
+    return required.filter((key) => !apiPayload[key]);
+  }
+
+  /**
+   * Проверяет, что путь к player.js валиден
+   * @param playerJsPath Путь к player.js
+   * @returns true, если путь валиден
+   */
+  private hasValidPlayerJsPath(playerJsPath: string): boolean {
+    return Boolean(playerJsPath) && playerJsPath.startsWith("/assets/js/");
+  }
+
+  /**
+   * Проверяет структуру ответа API
+   * @param responseApiJson Ответ API
+   * @returns true, если структура валидна
+   */
+  private hasValidApiResponse(responseApiJson: Record<string, any>): boolean {
+    if (!responseApiJson || typeof responseApiJson !== "object") {
+      return false;
+    }
+
+    const links = responseApiJson.links;
+    if (!links || typeof links !== "object") {
+      return false;
+    }
+
+    return Boolean(links["360"] || links["480"] || links["720"]);
   }
 
   /**
@@ -341,6 +406,10 @@ export class Kodik extends BaseVideoExtractor {
     try {
       // Получаем HTML страницы
       const response = await this.fetchGet(url);
+      if (!response.ok) {
+        console.warn(`Error! Kodik page status ${response.status}`);
+        return [];
+      }
       const responseText = await response.text();
 
       // Проверяем на ошибки
@@ -358,12 +427,31 @@ export class Kodik extends BaseVideoExtractor {
 
       // Извлекаем данные для API запроса
       const { apiPayload, playerJsPath } = this.extractApiPayload(responseText);
+      const missingFields = this.getMissingApiPayloadFields(apiPayload);
+      if (missingFields.length > 0) {
+        console.warn(
+          `Error! Missing required api payload fields: ${missingFields.join(
+            ", "
+          )}`
+        );
+        return [];
+      }
+      if (!this.hasValidPlayerJsPath(playerJsPath)) {
+        console.warn("Error! Invalid player.js path");
+        return [];
+      }
       const netloc = this.getNetloc(url);
 
       // Если путь к API не кэширован, получаем его
       if (!Kodik.CACHED_API_PATH) {
         const urlJsPlayer = `https://${netloc}${playerJsPath}`;
         const responsePlayer = await this.fetchGet(urlJsPlayer);
+        if (!responsePlayer.ok) {
+          console.warn(
+            `Error! Kodik player.js status ${responsePlayer.status}`
+          );
+          return [];
+        }
         const responsePlayerText = await responsePlayer.text();
         this.updateApiPath(responsePlayerText);
       }
@@ -379,6 +467,12 @@ export class Kodik extends BaseVideoExtractor {
       if (!responseApi.ok) {
         const urlJsPlayer = `https://${netloc}${playerJsPath}`;
         const responsePlayer = await this.fetchGet(urlJsPlayer);
+        if (!responsePlayer.ok) {
+          console.warn(
+            `Error! Kodik player.js status ${responsePlayer.status}`
+          );
+          return [];
+        }
         const responsePlayerText = await responsePlayer.text();
         this.updateApiPath(responsePlayerText);
 
@@ -389,7 +483,24 @@ export class Kodik extends BaseVideoExtractor {
         responseApi = await this.fetchPost(urlApiNew, apiPayload, headers);
       }
 
-      const responseApiJson = await responseApi.json();
+      if (!responseApi.ok) {
+        console.warn(`Error! Kodik API status ${responseApi.status}`);
+        return [];
+      }
+
+      let responseApiJson: Record<string, any> | null = null;
+      try {
+        responseApiJson = await responseApi.json();
+      } catch (error) {
+        console.warn("Error parsing Kodik API JSON:", error);
+        return [];
+      }
+
+      if (!this.hasValidApiResponse(responseApiJson)) {
+        console.warn("Error! Invalid Kodik API response");
+        return [];
+      }
+
       return this.extract(responseApiJson.links);
     } catch (error) {
       console.error("Error parsing Kodik:", error);
