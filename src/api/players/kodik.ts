@@ -329,7 +329,6 @@ export class Kodik extends BaseVideoExtractor {
       "d_sign",
       "pd",
       "pd_sign",
-      "ref",
       "ref_sign",
       "type",
       "hash",
