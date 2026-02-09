@@ -1,10 +1,14 @@
 name: Build and Release
 
 on:
-  push:
-    tags:
-      - "v*" # Запускается при пуше тега v0.3.2, v1.0.0 и т.д.
-  workflow_dispatch: # Можно запускать вручную
+  workflow_dispatch: # Запускается вручную
+    inputs:
+      description:
+        description: "Описание релиза"
+        required: true
+        type: string
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -21,6 +25,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Read version from package.json
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Install dependencies
         run: npm i
@@ -41,37 +52,33 @@ jobs:
         run: |
           npm run dist:mac
 
-      - name: Upload to GitHub Release (Windows)
+      - name: Upload build artifacts (Windows)
         if: matrix.os == 'windows-latest'
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-artifact@v4
         with:
-          files: dist/*.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: windows-artifacts
+          path: dist/*.exe
 
-      - name: Upload to GitHub Release (Linux)
+      - name: Upload build artifacts (Linux)
         if: matrix.os == 'ubuntu-latest'
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-artifact@v4
         with:
-          files: |
+          name: linux-artifacts
+          path: |
             dist/*.AppImage
             dist-full.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload to GitHub Release (macOS)
+      - name: Upload build artifacts (macOS)
         if: matrix.os == 'macos-latest'
-        uses: softprops/action-gh-release@v2
+        uses: actions/upload-artifact@v4
         with:
-          files: dist/*.dmg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: macos-artifacts
+          path: dist/*.dmg
 
       - name: Update PKGBUILD version
         if: matrix.os == 'ubuntu-latest'
         run: |
-          TAG=${{ github.ref_name }}
-          VERSION=${TAG:1}
+          VERSION=${{ steps.version.outputs.version }}
           echo "Building version $VERSION"
           sed -i "s/^pkgver=.*/pkgver=$VERSION/" PKGBUILD
 
@@ -88,15 +95,38 @@ jobs:
           commit_message: Update AUR package
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
-      - name: Send Telegram message
-        if: matrix.os == 'ubuntu-latest'
-        uses: appleboy/telegram-action@master
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          message: |
-            Новый релиз!
-            Версия: ${{ github.event.release.tag_name }}
-            Автор: ${{ github.event.release.author.login }}
-            Описание: ${{ github.event.release.body }}
-            Ссылка: ${{ github.event.release.html_url }}
+          node-version: 20
+
+      - name: Read version from package.json
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create tag and GitHub Release
+        id: release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          body: ${{ inputs.description }}
+          files: release-assets/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
