@@ -1,16 +1,7 @@
 import "./AnimeSearchPage.css";
-import { useEffect, useState } from "react";
-import { Search, YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
+import { Search, useSearchQuery } from "../../api/source/Yumme_anime_ru";
 import LoadingSpinner from "./LoadingSpinner";
 import { useNavigate } from "react-router-dom";
-
-export async function SearchAnime(
-  query: string,
-  callback: (list: Search[]) => void
-) {
-  const searchData = await new YummyAnimeExtractor().Search(query);
-  callback(searchData);
-}
 
 function AnimePlate(
   search_data: Search,
@@ -77,15 +68,19 @@ function AnimePlate(
 }
 
 export default function SearchPage({ query }: { query: string }) {
-  const [list, setList] = useState<Search[]>([]);
   const navigate = useNavigate();
-  useEffect(() => {
-    SearchAnime(query, (list: Search[]) => setList(list));
-  }, [query]);
+  const { data, isLoading, isError } = useSearchQuery(query);
 
-  if (list.length === 0) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
+
+  if (isError) {
+    return <div>Ошибка при загрузке данных</div>;
+  }
+
+  const list = data ?? [];
+
   return (
     <div className="anime-list">
       {list.map((obj, i) => (

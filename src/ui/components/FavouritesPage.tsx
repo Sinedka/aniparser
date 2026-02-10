@@ -1,8 +1,8 @@
 import { InfiniteScroll } from "./InfiniteScrol";
-import { Anime } from "../../api/source/Yumme_anime_ru";
-import { YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
+import { Anime, useAnimeListInfiniteQuery } from "../../api/source/Yumme_anime_ru";
 import { SaveManager } from "../saveManager";
 import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "./LoadingSpinner";
 
 function AnimePlate(
   animeData: Anime,
@@ -50,21 +50,35 @@ function AnimePlate(
 export default function FavouritesPage() {
   const favourites = SaveManager.getFavourites();
   const navigate = useNavigate();
-  const getAnime = async (url: string) => {
-    try {
-      const extractor = new YummyAnimeExtractor();
-      const anime = await extractor.getAnime(url);
-      return AnimePlate(anime, navigate);
-    } catch (err) {
-      console.error(err);
-    }
-    return null;
-  };
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAnimeListInfiniteQuery(favourites);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (isError) {
+    return <div>Ошибка при загрузке данных</div>;
+  }
+
+  const items =
+    data?.pages.flat().map((anime) => AnimePlate(anime, navigate)) ?? [];
 
   return (
     <div>
       <h1>Избранные</h1>
-      <InfiniteScroll fetchFn={getAnime} args={favourites} />
+      <InfiniteScroll
+        items={items}
+        loadMore={fetchNextPage}
+        hasMore={Boolean(hasNextPage)}
+        isLoading={isFetchingNextPage}
+      />
     </div>
   )
 }

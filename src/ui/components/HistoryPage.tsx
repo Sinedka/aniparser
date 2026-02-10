@@ -1,22 +1,11 @@
 import { InfiniteScroll } from "./InfiniteScrol";
-import { Anime } from "../../api/source/Yumme_anime_ru";
-import { YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
+import { Anime, useAnimeListInfiniteQuery } from "../../api/source/Yumme_anime_ru";
 import { SaveManager } from "../saveManager";
 import { useNavigate } from "react-router-dom";
-
-const fetchOne = async (i: number): Promise<React.ReactNode | null> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-        resolve(<li>Элемент {i}</li>);
-    }, 80);
-  });
-};
+import LoadingSpinner from "./LoadingSpinner";
 
 
-function AnimePlate(
-  animeData: Anime,
-  navigate: (to: string) => void
-) {
+function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
   return (
     <a
       className="anime-plate"
@@ -59,21 +48,35 @@ function AnimePlate(
 export default function HistoryPage() {
   const history = SaveManager.getHistory();
   const navigate = useNavigate();
-  const getAnime = async (url: string) => {
-    try {
-      const extractor = new YummyAnimeExtractor();
-      const anime = await extractor.getAnime(url);
-      return AnimePlate(anime, navigate);
-    } catch (err) {
-      console.error(err);
-    }
-    return null;
-  };
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAnimeListInfiniteQuery(history);
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (isError) {
+    return <div>Ошибка при загрузке данных</div>;
+  }
+
+  const items =
+    data?.pages.flat().map((anime) => AnimePlate(anime, navigate)) ?? [];
 
   return (
     <div>
       <h1>История просмотров</h1>
-      <InfiniteScroll fetchFn={getAnime} args={history} />;
+      <InfiniteScroll
+        items={items}
+        loadMore={fetchNextPage}
+        hasMore={Boolean(hasNextPage)}
+        isLoading={isFetchingNextPage}
+      />
     </div>
   )
 }

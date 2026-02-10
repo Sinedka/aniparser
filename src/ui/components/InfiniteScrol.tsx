@@ -1,42 +1,20 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
-type InfiniteScrollProps<T> = {
-  fetchFn: (args: T) => Promise<React.ReactNode | null>;
-  args: T[];
-  pageSize?: number;
+type InfiniteScrollProps = {
+  items: React.ReactNode[];
+  loadMore: () => void;
+  hasMore: boolean;
+  isLoading: boolean;
 };
 
-export function InfiniteScroll<T>({ fetchFn, args, pageSize = 10 }: InfiniteScrollProps<T>) {
-  const [items, setItems] = useState<React.ReactNode[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+export function InfiniteScroll({
+  items,
+  loadMore,
+  hasMore,
+  isLoading,
+}: InfiniteScrollProps) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loaderRef = useRef<HTMLDivElement | null>(null);
-
-  const loadMore = useCallback(async () => {
-    if (!hasMore || isLoading) return;
-
-    setIsLoading(true);
-
-    const start = pageSize * page;
-    const end = Math.min(pageSize * (page + 1), args.length) 
-
-    const newArr = args.slice(pageSize * page, Math.min(pageSize * (page + 1), args.length));
-    const promises = newArr.map(id => fetchFn(id));
-    const results = await Promise.all(promises);
-
-    setIsLoading(false);
-
-
-    setItems((prev) => [...prev, ...results]);
-    setPage((prev) => prev + 1);
-
-    if (end >= args.length) {
-      setHasMore(false);
-    }
-  }, [args, page, hasMore, isLoading, fetchFn]);
-
 
   useEffect(() => {
     if (!loaderRef.current) return;
@@ -45,7 +23,7 @@ export function InfiniteScroll<T>({ fetchFn, args, pageSize = 10 }: InfiniteScro
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
           loadMore();
         }
       },
@@ -63,7 +41,7 @@ export function InfiniteScroll<T>({ fetchFn, args, pageSize = 10 }: InfiniteScro
 
 
 
-  }, [loadMore]);
+  }, [hasMore, isLoading, loadMore]);
 
   return (
     <div>

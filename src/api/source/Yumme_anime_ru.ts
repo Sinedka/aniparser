@@ -1,3 +1,4 @@
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { findExtractor, extractVideos } from "../players/index";
 import {
   AnimeStatus,
@@ -154,6 +155,97 @@ class YummyAnimeRuAPI {
     );
     return response.response;
   }
+}
+
+const api = new YummyAnimeRuAPI();
+
+export const yummyKeys = {
+  all: ["yummy-anime"] as const,
+  anime: (aliasOrId: string | number) =>
+    [...yummyKeys.all, "anime", aliasOrId] as const,
+  search: (query: string, limit: number, offset: number) =>
+    [...yummyKeys.all, "search", query, limit, offset] as const,
+  ongoings: () => [...yummyKeys.all, "ongoings"] as const,
+  animeList: (urls: string[], pageSize: number) =>
+    [...yummyKeys.all, "anime-list", urls, pageSize] as const,
+};
+
+export async function fetchAnime(
+  aliasOrId: string | number,
+  needVideos = true,
+  options: Record<string, any> = {}
+): Promise<Anime> {
+  return new Anime(await api.getAnime(aliasOrId, needVideos, options));
+}
+
+export async function fetchSearch(
+  query: string,
+  limit = 20,
+  offset = 0,
+  options: Record<string, any> = {}
+): Promise<Search[]> {
+  return (await api.searchTitles(query, limit, offset, options)).map(
+    (result) => new Search(result)
+  );
+}
+
+export async function fetchOngoings(
+  options: Record<string, any> = {}
+): Promise<Ongoing[]> {
+  const updates = await api.getUpdates(options);
+  return updates
+    .filter((item) => item.episodes.aired > 0)
+    .map((item) => new Ongoing(item));
+}
+
+export function useAnimeQuery(
+  url: string | null,
+  options: { enabled?: boolean } = {}
+) {
+  return useQuery({
+    queryKey: yummyKeys.anime(url ?? ""),
+    queryFn: () => fetchAnime(url as string),
+    enabled: (options.enabled ?? true) && !!url,
+  });
+}
+
+export function useSearchQuery(
+  query: string,
+  options: { enabled?: boolean; limit?: number; offset?: number } = {}
+) {
+  const limit = options.limit ?? 20;
+  const offset = options.offset ?? 0;
+  return useQuery({
+    queryKey: yummyKeys.search(query, limit, offset),
+    queryFn: () => fetchSearch(query, limit, offset),
+    enabled: (options.enabled ?? true) && query.trim().length > 0,
+  });
+}
+
+export function useOngoingsQuery(options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: yummyKeys.ongoings(),
+    queryFn: () => fetchOngoings(),
+    enabled: options.enabled ?? true,
+  });
+}
+
+export function useAnimeListInfiniteQuery(urls: string[], pageSize = 10) {
+  return useInfiniteQuery({
+    queryKey: yummyKeys.animeList(urls, pageSize),
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const start = pageParam as number;
+      const slice = urls.slice(start, start + pageSize);
+      const results = await Promise.all(slice.map((url) => fetchAnime(url)));
+      return results;
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, page) => sum + page.length, 0);
+      return loaded < urls.length ? loaded : undefined;
+    },
+    enabled: urls.length > 0,
+  });
 }
 
 // Основные классы

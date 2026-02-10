@@ -1,7 +1,6 @@
 import "./AnimePage.css";
-import { Anime } from "../../api/source/Yumme_anime_ru";
-import { YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
 import { useEffect, useState } from "react";
+import { useAnimeQuery } from "../../api/source/Yumme_anime_ru";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
 import HeartToggle from "./HeartToggle";
@@ -9,21 +8,26 @@ import CustomSelect from "./CustomSelect";
 import { useNavigate } from "react-router-dom";
 
 export default function AnimePage({ url }: { url: string }) {
-  const [animeData, setAnimeData] = useState<Anime | null>(null);
-  const [AnimeStatus, setStatus] = useState<number>(SaveManager.checkAnimeStatus(url));
+  const [AnimeStatus, setStatus] = useState<number>(
+    SaveManager.checkAnimeStatus(url)
+  );
   const navigate = useNavigate();
 
+  const { data: animeData, isLoading, isError } = useAnimeQuery(url);
+
   useEffect(() => {
-    setAnimeData(null);
-    const extractor = new YummyAnimeExtractor();
-    extractor.getAnime(url).then((anime) => setAnimeData(anime));
+    setStatus(SaveManager.checkAnimeStatus(url));
   }, [url]);
 
   useEffect(() => {
     SaveManager.setAnimeStatus(url, AnimeStatus);
-  }, [AnimeStatus])
+  }, [AnimeStatus, url])
 
-  if (!animeData) return <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner />;
+
+  if (isError || !animeData) {
+    return <div>Ошибка при загрузке данных</div>;
+  }
 
   const rating = animeData.animeResult.rating.average;
   const stars = Array(5)

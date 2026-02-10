@@ -1,9 +1,7 @@
 import "./OngoingPage.css";
-import { useEffect, useState } from "react";
-import { YummyAnimeExtractor, Ongoing, Anime } from "../../api/source/Yumme_anime_ru";
+import { Ongoing, Anime, useAnimeQuery, useOngoingsQuery } from "../../api/source/Yumme_anime_ru";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
-import HeartToggle from "./HeartToggle";
 import { useNavigate } from "react-router-dom";
 
 function OngoingPlate(ongoing: Ongoing) {
@@ -73,45 +71,29 @@ function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
 }
 
 export default function OngoingPage() {
-  const [ongoings, setOngoings] = useState<Ongoing[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [latestAnime, setLatestAnime] = useState<Anime | null>(null);
+  const history = SaveManager.getHistory();
+  const latestUrl = history[0] || null;
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchOngoings = async () => {
-      try {
-        const extractor = new YummyAnimeExtractor();
-        const result = await extractor.getOngoings();
-        setOngoings(result);
+  const {
+    data: ongoings,
+    isLoading: isOngoingsLoading,
+    isError: isOngoingsError,
+  } = useOngoingsQuery();
 
-        const history = SaveManager.getHistory();
-        if(history.length != 0) {
-          const anime = await extractor.getAnime(history[0]);
-          setLatestAnime(anime)
-        }
+  const { data: latestAnime } = useAnimeQuery(
+    latestUrl,
+    { enabled: Boolean(latestUrl) }
+  );
 
-
-      } catch (err) {
-        setError("Ошибка при загрузке данных");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOngoings();
-  }, []);
-
-  if (loading) {
+  if (isOngoingsLoading) {
     return <LoadingSpinner />;
   }
 
-  if (error) {
+  if (isOngoingsError) {
     return (
       <div className="error-container">
-        <p className="error-text">{error}</p>
+        <p className="error-text">Ошибка при загрузке данных</p>
       </div>
     );
   }
@@ -126,7 +108,7 @@ export default function OngoingPage() {
       </div>
       }
       <div className="flip-cards-container">
-        {ongoings.map((obj, i) => (
+        {(ongoings ?? []).map((obj, i) => (
           <div
             key={i}
             className="flip-card-wrapper"
