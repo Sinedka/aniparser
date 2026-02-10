@@ -1,12 +1,13 @@
 import "./Header.css";
-import { closeAll, searchAnime, openFavourites } from "../body";
 import { FaSearch, FaHome, FaHeart } from "react-icons/fa";
 import { useState, useRef, useCallback } from "react";
 import WindowControllButtons from "./WindowControlButtons";
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const [searchValue, setSearchValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const handleMouseDown = useCallback(() => {
     console.log("⏺ mouse down на drag-region");
@@ -24,7 +25,7 @@ export default function Header() {
 
   const handleSearch = () => {
     if (searchValue.length > 2) {
-      searchAnime(searchValue);
+      navigate(`/search?q=${encodeURIComponent(searchValue)}`);
       setSearchValue("");
       inputRef.current?.blur();
     }
@@ -54,12 +55,12 @@ export default function Header() {
       </div>
 
       <div className="header-right">
-        <button className="header-button" onClick={() => openFavourites()}>
+        <button className="header-button" onClick={() => navigate("/favourites")}>
           <FaHeart />
         </button>
         <button className="header-button"
           onClick={() => {
-            closeAll();
+            navigate("/");
           }}
         >
           <FaHome />

@@ -1,17 +1,17 @@
 import "./AnimePage.css";
 import { Anime } from "../../api/source/Yumme_anime_ru";
 import { YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
-import { playAnime, openAnimePage } from "../body";
 import { useEffect, useState } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
 import HeartToggle from "./HeartToggle";
-import { use } from "video.js/dist/types/tech/middleware";
 import CustomSelect from "./CustomSelect";
+import { useNavigate } from "react-router-dom";
 
 export default function AnimePage({ url }: { url: string }) {
   const [animeData, setAnimeData] = useState<Anime | null>(null);
   const [AnimeStatus, setStatus] = useState<number>(SaveManager.checkAnimeStatus(url));
+  const navigate = useNavigate();
 
   useEffect(() => {
     setAnimeData(null);
@@ -101,7 +101,7 @@ export default function AnimePage({ url }: { url: string }) {
               className="watch-button"
               onClick={() => {
                 if(AnimeStatus == 0 || AnimeStatus == 1 || AnimeStatus == 4) SaveManager.setAnimeStatus(url, 2);
-                playAnime(animeData);
+                navigate("/player", { state: { anime: animeData } });
               }}
             >
               {getWatchButtonText()}
@@ -173,7 +173,7 @@ export default function AnimePage({ url }: { url: string }) {
                   <div
                     key={index}
                     className="viewing-order-item"
-                    onClick={() => openAnimePage(item.anime_url)}
+                    onClick={() => navigate(`/anime?url=${encodeURIComponent(item.anime_url)}`)}
                     style={{ cursor: "pointer" }}
                   >
                     <div className="viewing-order-item-poster">

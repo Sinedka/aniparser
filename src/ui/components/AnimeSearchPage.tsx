@@ -1,8 +1,8 @@
 import "./AnimeSearchPage.css";
 import { useEffect, useState } from "react";
 import { Search, YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
-import { openAnimePage } from "../body";
 import LoadingSpinner from "./LoadingSpinner";
+import { useNavigate } from "react-router-dom";
 
 export async function SearchAnime(
   query: string,
@@ -12,11 +12,10 @@ export async function SearchAnime(
   callback(searchData);
 }
 
-async function openAnime(search_data: Search) {
-  openAnimePage(search_data.searchResult.anime_url);
-}
-
-function AnimePlate(search_data: Search) {
+function AnimePlate(
+  search_data: Search,
+  navigate: (to: string) => void
+) {
   const rating = search_data.searchResult.rating.average;
   const stars = Array(5)
     .fill(0)
@@ -37,7 +36,7 @@ function AnimePlate(search_data: Search) {
       className="anime-plate"
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => openAnime(search_data)}
+      onClick={() => navigate(`/anime?url=${encodeURIComponent(search_data.searchResult.anime_url)}`)}
     >
       <div className="thumbnail">
         <img
@@ -79,6 +78,7 @@ function AnimePlate(search_data: Search) {
 
 export default function SearchPage({ query }: { query: string }) {
   const [list, setList] = useState<Search[]>([]);
+  const navigate = useNavigate();
   useEffect(() => {
     SearchAnime(query, (list: Search[]) => setList(list));
   }, [query]);
@@ -89,7 +89,7 @@ export default function SearchPage({ query }: { query: string }) {
   return (
     <div className="anime-list">
       {list.map((obj, i) => (
-        <div key={i}>{AnimePlate(obj)}</div>
+        <div key={i}>{AnimePlate(obj, navigate)}</div>
       ))}
     </div>
   );

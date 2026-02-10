@@ -1,8 +1,8 @@
 import { InfiniteScroll } from "./InfiniteScrol";
 import { Anime } from "../../api/source/Yumme_anime_ru";
-import { openAnimePage } from "../body";
 import { YummyAnimeExtractor } from "../../api/source/Yumme_anime_ru";
 import { SaveManager } from "../saveManager";
+import { useNavigate } from "react-router-dom";
 
 const fetchOne = async (i: number): Promise<React.ReactNode | null> => {
   return new Promise((resolve) => {
@@ -13,13 +13,16 @@ const fetchOne = async (i: number): Promise<React.ReactNode | null> => {
 };
 
 
-function AnimePlate(animeData: Anime) {
+function AnimePlate(
+  animeData: Anime,
+  navigate: (to: string) => void
+) {
   return (
     <a
       className="anime-plate"
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => openAnimePage(animeData.animeResult.anime_url)}
+      onClick={() => navigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`)}
     >
       <div className="thumbnail">
         <img
@@ -53,20 +56,20 @@ function AnimePlate(animeData: Anime) {
   );
 }
 
-const getAnime = async (url: string) => {
-  try {
-    const extractor = new YummyAnimeExtractor();
-    const anime = await extractor.getAnime(url);
-    return AnimePlate(anime)
-  } catch (err) {
-    console.error(err);
-  } 
-};
-
-
-
 export default function HistoryPage() {
   const history = SaveManager.getHistory();
+  const navigate = useNavigate();
+  const getAnime = async (url: string) => {
+    try {
+      const extractor = new YummyAnimeExtractor();
+      const anime = await extractor.getAnime(url);
+      return AnimePlate(anime, navigate);
+    } catch (err) {
+      console.error(err);
+    }
+    return null;
+  };
+
   return (
     <div>
       <h1>История просмотров</h1>

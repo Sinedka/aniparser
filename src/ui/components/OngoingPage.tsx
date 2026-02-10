@@ -1,18 +1,10 @@
 import "./OngoingPage.css";
 import { useEffect, useState } from "react";
 import { YummyAnimeExtractor, Ongoing, Anime } from "../../api/source/Yumme_anime_ru";
-import { openAnimePage, openHistory } from "../body";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
 import HeartToggle from "./HeartToggle";
-
-async function openOngoing(ongoing: Ongoing) {
-  openAnimePage(ongoing.ongoingResult.anime_url);
-}
-
-async function openAnime(anime: Anime) {
-  openAnimePage(anime.animeResult.anime_url);
-}
+import { useNavigate } from "react-router-dom";
 
 function OngoingPlate(ongoing: Ongoing) {
   const posterUrl = !ongoing.ongoingResult.poster.huge.startsWith("http")
@@ -40,13 +32,13 @@ function OngoingPlate(ongoing: Ongoing) {
   );
 }
 
-function AnimePlate(animeData: Anime) {
+function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
   return (
     <a
       className="anime-plate"
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => openAnime(animeData)}
+      onClick={() => navigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`)}
     >
       <div className="thumbnail">
         <img
@@ -85,6 +77,7 @@ export default function OngoingPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [latestAnime, setLatestAnime] = useState<Anime | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOngoings = async () => {
@@ -128,8 +121,8 @@ export default function OngoingPage() {
       {latestAnime &&
       <div className="history-Background">
         <h2 className="continue-watching"> Продолжение просмотра </h2>
-          {AnimePlate(latestAnime)}
-        <button className="full-history-button" onClick={() => openHistory()}> вся история</button>
+          {AnimePlate(latestAnime, navigate)}
+        <button className="full-history-button" onClick={() => navigate("/history")}> вся история</button>
       </div>
       }
       <div className="flip-cards-container">
@@ -137,7 +130,7 @@ export default function OngoingPage() {
           <div
             key={i}
             className="flip-card-wrapper"
-            onClick={() => openOngoing(obj)}
+            onClick={() => navigate(`/anime?url=${encodeURIComponent(obj.ongoingResult.anime_url)}`)}
           >
             {OngoingPlate(obj)}
           </div>
