@@ -1,77 +1,118 @@
 import "./OngoingPage.css";
-import { Ongoing, Anime, seedFromOngoing, useAnimeQuery, useOngoingsQuery } from "../../api/source/Yumme_anime_ru";
+import { useRef } from "react";
+import {
+  AnimeSeed,
+  FeedResponse,
+  useAnimeListInfiniteQuery,
+  useFeedQuery,
+} from "../../api/source/Yumme_anime_ru";
 import { SaveManager } from "../saveManager";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 
-function OngoingPlate(ongoing: Ongoing) {
-  const posterUrl = !ongoing.ongoingResult.poster.huge.startsWith("http")
-    ? `https:${ongoing.ongoingResult.poster.huge}`
-    : ongoing.ongoingResult.poster.huge;
+type FeedAnimeItem = FeedResponse["new"][number];
+type FeedCardItem = Pick<
+  FeedAnimeItem,
+  "title" | "poster" | "anime_status" | "type" | "year" | "description" | "rating"
+>;
+type FeedScheduleItem = FeedResponse["schedule"][number];
+
+function seedFromFeed(item: FeedAnimeItem): AnimeSeed {
+  return {
+    anime_url: item.anime_url,
+    title: item.title,
+    poster: item.poster,
+    description: item.description,
+    anime_status: item.anime_status,
+    type: item.type,
+    year: item.year,
+    rating: {
+      average: item.rating?.average ?? 0,
+      counters: item.rating?.counters ?? 0,
+      kp_rating: 0,
+      anidub_rating: 0,
+      myanimelist_rating: 0,
+      shikimori_rating: 0,
+      worldart_rating: 0,
+    },
+  };
+}
+
+function seedFromSchedule(item: FeedScheduleItem): AnimeSeed {
+  return {
+    anime_url: item.anime_url,
+    title: item.title,
+    poster: item.poster,
+    description: item.description,
+  };
+}
+
+function FeedAnimeCard(item: FeedCardItem, options?: { showDescription?: boolean }) {
+  const showDescription = options?.showDescription ?? true;
+  const posterUrl = !item.poster.huge.startsWith("http")
+    ? `https:${item.poster.huge}`
+    : item.poster.huge;
 
   return (
-    <div className="flip-card">
-      <div className="flip-card-front">
-        <img src={posterUrl} alt={ongoing.ongoingResult.title} />
-      </div>
-      <div className="flip-card-back">
-        <div className="flip-card-back-content">
-          <h3 className="title">{ongoing.ongoingResult.title}</h3>
-          <p className="description">{ongoing.ongoingResult.description}</p>
+    <article className="feed-card">
+      <div className="feed-card-media">
+        <img src={posterUrl} alt={item.title} />
+        <div
+          className="feed-card-status"
+          data-status={item.anime_status?.title}
+        >
+          {item.anime_status?.title}
         </div>
-        <div className="small-info">
-          <div className="episodes-badge">
-            {ongoing.ongoingResult.episodes.aired} /{" "}
-            {ongoing.ongoingResult.episodes.count || "?"}
+      </div>
+      <div className="feed-card-body">
+        <h3 className="feed-card-title">{item.title}</h3>
+        {showDescription && <p className="feed-card-desc">{item.description}</p>}
+        <div className="feed-card-footer">
+          <div className="feed-card-meta">
+            <span>{item.type?.name}</span>
+            <span>{item.year}</span>
+          </div>
+          <div className="feed-card-rating">
+            ★ {item.rating?.average?.toFixed(2) ?? "0.00"} ·{" "}
+            {item.rating?.counters ?? 0}
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
-function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
-  return (
-    <a
-      className="anime-plate"
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={() =>
-        navigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`, {
-          state: { anime: animeData },
-        })
-      }
-    >
-      <div className="thumbnail">
-        <img
-          className="thumbnail-img"
-          src={
-            !animeData.animeResult.poster.huge.startsWith("http")
-              ? `https:${animeData.animeResult.poster.huge}`
-              : animeData.animeResult.poster.huge
-          }
-          alt={animeData.animeResult.title}
-        />
-      </div>
-      <div className="anime-data">
-        <h3 className="title">{animeData.animeResult.title}</h3>
-        <div className="small-info">
-          <div
-            className="small-info-el anime-status"
-            data-status={animeData.animeResult.anime_status.title}
-          >
-            {animeData.animeResult.anime_status.title}
-          </div>
-          <div className="small-info-el">
-            {animeData.animeResult.type.name}
-          </div>
-          <div className="small-info-el">{animeData.animeResult.year}</div>
-        </div>
+function formatScheduleDate(ts?: number) {
+  if (!ts) return "—";
+  const date = new Date(ts * 1000);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 
-        <p className="description">{animeData.animeResult.description}</p>
-      </div>
-    </a>
-  );
+function getScheduleDayKey(ts?: number) {
+  if (!ts) return "no-date";
+  const date = new Date(ts * 1000);
+  if (Number.isNaN(date.getTime())) return "no-date";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatScheduleDayLabel(ts?: number) {
+  if (!ts) return "Без даты";
+  const date = new Date(ts * 1000);
+  if (Number.isNaN(date.getTime())) return "Без даты";
+  return new Intl.DateTimeFormat("ru-RU", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  }).format(date);
 }
 
 function SkeletonPlate(baseColor: string, highlightColor: string) {
@@ -125,44 +166,94 @@ function SkeletonPlate(baseColor: string, highlightColor: string) {
   );
 }
 
-export default function OngoingPage() {
-  const history = SaveManager.getHistory();
-  const latestUrl = history[0] || null;
+export default function MainPage() {
+  const historyUrls = SaveManager.getHistory();
   const navigate = useNavigate();
   const skeletonBase = "var(--skeleton-base)";
   const skeletonHighlight = "var(--skeleton-highlight)";
+  const historyShelfRef = useRef<HTMLDivElement | null>(null);
 
   const {
-    data: ongoings,
-    isLoading: isOngoingsLoading,
-    isError: isOngoingsError,
-  } = useOngoingsQuery();
+    data: feed,
+    isLoading: isFeedLoading,
+    isError: isFeedError,
+  } = useFeedQuery();
 
-  const { data: latestAnime } = useAnimeQuery(
-    latestUrl,
-    { enabled: Boolean(latestUrl) }
-  );
+  const {
+    data: historyPages,
+    isLoading: isHistoryLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAnimeListInfiniteQuery(historyUrls, 12);
 
-  if (isOngoingsLoading) {
+  if (isFeedLoading) {
     return (
       <>
-        {latestUrl && (
-          <div className="history-Background">
-            <h2 className="continue-watching"> Продолжение просмотра </h2>
-            {SkeletonPlate(skeletonBase, skeletonHighlight)}
-            <button
-              className="full-history-button"
-              onClick={() => navigate("/history")}
-            >
-              вся история
-            </button>
-          </div>
+        {historyUrls.length > 0 && (
+          <section className="feed-section">
+            <div className="feed-section-header">
+              <h2 className="feed-section-title">Продолжение просмотра</h2>
+            </div>
+            <div className="history-shelf-wrap">
+              <div className="history-shelf">
+                <div className="feed-shelf">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={`history-loading-${i}`} className="feed-card-wrapper">
+                      <div className="feed-card">
+                        <div className="feed-card-media">
+                          <Skeleton
+                            height="100%"
+                            width="100%"
+                            baseColor={skeletonBase}
+                            highlightColor={skeletonHighlight}
+                          />
+                        </div>
+                        <div className="feed-card-body">
+                          <Skeleton
+                            width="80%"
+                            height={18}
+                            baseColor={skeletonBase}
+                            highlightColor={skeletonHighlight}
+                          />
+                          <Skeleton
+                            count={2}
+                            height={12}
+                            baseColor={skeletonBase}
+                            highlightColor={skeletonHighlight}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button
+                className="history-arrow history-arrow-left"
+                disabled
+                aria-label="Прокрутить историю влево"
+              >
+                ‹
+              </button>
+              <button
+                className="history-arrow history-arrow-right"
+                disabled
+                aria-label="Прокрутить историю вправо"
+              >
+                ›
+              </button>
+            </div>
+          </section>
         )}
-        <div className="flip-cards-container">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <div key={i} className="flip-card-wrapper">
-              <div className="flip-card">
-                <div className="flip-card-front">
+        <section className="schedule-section">
+          <div className="schedule-header">
+            <h2 className="schedule-title">Расписание выхода</h2>
+            <p className="schedule-subtitle">Следующие эпизоды и актуальные даты</p>
+          </div>
+          <div className="schedule-grid">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={`schedule-skeleton-${i}`} className="schedule-card">
+                <div className="schedule-media">
                   <Skeleton
                     height="100%"
                     width="100%"
@@ -170,16 +261,64 @@ export default function OngoingPage() {
                     highlightColor={skeletonHighlight}
                   />
                 </div>
-                <div className="flip-card-back">
-                  <div className="flip-card-back-content">
+                <div className="schedule-body">
+                  <Skeleton
+                    width="70%"
+                    height={20}
+                    baseColor={skeletonBase}
+                    highlightColor={skeletonHighlight}
+                  />
+                  <Skeleton
+                    count={2}
+                    height={12}
+                    baseColor={skeletonBase}
+                    highlightColor={skeletonHighlight}
+                  />
+                  <div className="schedule-meta">
                     <Skeleton
-                      width="80%"
-                      height={22}
+                      width={120}
+                      height={14}
                       baseColor={skeletonBase}
                       highlightColor={skeletonHighlight}
                     />
                     <Skeleton
-                      count={3}
+                      width={120}
+                      height={14}
+                      baseColor={skeletonBase}
+                      highlightColor={skeletonHighlight}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="feed-section">
+          <div className="feed-section-header">
+            <h2 className="feed-section-title">Анонсы</h2>
+            <p className="feed-section-subtitle">Готовьтесь заранее</p>
+          </div>
+          <div className="feed-shelf">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={`ann-skeleton-${i}`} className="feed-card-wrapper">
+                <div className="feed-card">
+                  <div className="feed-card-media">
+                    <Skeleton
+                      height="100%"
+                      width="100%"
+                      baseColor={skeletonBase}
+                      highlightColor={skeletonHighlight}
+                    />
+                  </div>
+                  <div className="feed-card-body">
+                    <Skeleton
+                      width="80%"
+                      height={18}
+                      baseColor={skeletonBase}
+                      highlightColor={skeletonHighlight}
+                    />
+                    <Skeleton
+                      count={2}
                       height={12}
                       baseColor={skeletonBase}
                       highlightColor={skeletonHighlight}
@@ -187,14 +326,14 @@ export default function OngoingPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
       </>
     );
   }
 
-  if (isOngoingsError) {
+  if (isFeedError) {
     return (
       <div className="error-container">
         <p className="error-text">Ошибка при загрузке данных</p>
@@ -202,42 +341,264 @@ export default function OngoingPage() {
     );
   }
 
+  const historyAnimes = historyPages?.pages.flat() ?? [];
+  const handleHistoryScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget;
+    if (!hasNextPage || isFetchingNextPage) return;
+    const preloadOffset = 500;
+    if (target.scrollLeft + target.clientWidth >= target.scrollWidth - preloadOffset) {
+      fetchNextPage();
+    }
+  };
+  const scrollHistoryBy = (direction: "left" | "right") => {
+    const shelf = historyShelfRef.current;
+    if (!shelf) return;
+    const amount = Math.round(shelf.clientWidth * 0.9);
+    shelf.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <>
-      {latestUrl && !latestAnime && (
-        <div className="history-Background">
-          <h2 className="continue-watching"> Продолжение просмотра </h2>
-          <div className="anime-plate">
-            <Skeleton
-              height={180}
-              baseColor={skeletonBase}
-              highlightColor={skeletonHighlight}
-            />
+      {historyUrls.length > 0 && isHistoryLoading && (
+        <section className="feed-section">
+          <div className="feed-section-header">
+            <h2 className="feed-section-title">Продолжение просмотра</h2>
           </div>
-        </div>
-      )}
-      {latestAnime && (
-        <div className="history-Background">
-          <h2 className="continue-watching"> Продолжение просмотра </h2>
-          {AnimePlate(latestAnime, navigate)}
-          <button className="full-history-button" onClick={() => navigate("/history")}> вся история</button>
-        </div>
-      )}
-      <div className="flip-cards-container">
-        {(ongoings ?? []).map((obj, i) => (
-          <div
-            key={i}
-            className="flip-card-wrapper"
-            onClick={() =>
-              navigate(`/anime?url=${encodeURIComponent(obj.ongoingResult.anime_url)}`, {
-                state: { seed: seedFromOngoing(obj) },
-              })
-            }
-          >
-            {OngoingPlate(obj)}
+          <div className="history-shelf-wrap">
+            <div className="history-shelf">
+              <div className="feed-shelf">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={`history-skeleton-${i}`} className="feed-card-wrapper">
+                    <div className="feed-card">
+                      <div className="feed-card-media">
+                        <Skeleton
+                          height="100%"
+                          width="100%"
+                          baseColor={skeletonBase}
+                          highlightColor={skeletonHighlight}
+                        />
+                      </div>
+                      <div className="feed-card-body">
+                        <Skeleton
+                          width="80%"
+                          height={18}
+                          baseColor={skeletonBase}
+                          highlightColor={skeletonHighlight}
+                        />
+                        <Skeleton
+                          count={2}
+                          height={12}
+                          baseColor={skeletonBase}
+                          highlightColor={skeletonHighlight}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button
+              className="history-arrow history-arrow-left"
+              disabled
+              aria-label="Прокрутить историю влево"
+            >
+              ‹
+            </button>
+            <button
+              className="history-arrow history-arrow-right"
+              disabled
+              aria-label="Прокрутить историю вправо"
+            >
+              ›
+            </button>
           </div>
-        ))}
-      </div>
+        </section>
+      )}
+      {historyAnimes.length > 0 && (
+        <section className="feed-section">
+          <div className="feed-section-header">
+            <h2 className="feed-section-title">Продолжение просмотра</h2>
+          </div>
+          <div className="history-shelf-wrap">
+            <div
+              className="history-shelf"
+              ref={historyShelfRef}
+              onScroll={handleHistoryScroll}
+            >
+              <div className="feed-shelf">
+              {historyAnimes.map((anime, i) => (
+                <div
+                  key={`history-${i}`}
+                  className="feed-card-wrapper"
+                  onClick={() =>
+                    navigate(
+                      `/anime?url=${encodeURIComponent(anime.animeResult.anime_url)}`,
+                      { state: { anime } }
+                    )
+                  }
+                >
+                {FeedAnimeCard(anime.animeResult, { showDescription: false })}
+                </div>
+              ))}
+              {isFetchingNextPage && (
+                <div className="feed-card-wrapper">
+                  <div className="feed-card">
+                    <div className="feed-card-media">
+                      <Skeleton
+                        height="100%"
+                        width="100%"
+                        baseColor={skeletonBase}
+                        highlightColor={skeletonHighlight}
+                      />
+                    </div>
+                    <div className="feed-card-body">
+                      <Skeleton
+                        width="80%"
+                        height={18}
+                        baseColor={skeletonBase}
+                        highlightColor={skeletonHighlight}
+                      />
+                      <Skeleton
+                        count={2}
+                        height={12}
+                        baseColor={skeletonBase}
+                        highlightColor={skeletonHighlight}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              </div>
+            </div>
+            <button
+              className="history-arrow history-arrow-left"
+              onClick={() => scrollHistoryBy("left")}
+              aria-label="Прокрутить историю влево"
+            >
+              ‹
+            </button>
+            <button
+              className="history-arrow history-arrow-right"
+              onClick={() => scrollHistoryBy("right")}
+              aria-label="Прокрутить историю вправо"
+            >
+              ›
+            </button>
+          </div>
+          </section>
+        )}
+      {(feed?.schedule?.length ?? 0) > 0 && (
+        <section className="schedule-section">
+          <div className="schedule-header">
+            <h2 className="schedule-title">Расписание выхода</h2>
+            <p className="schedule-subtitle">
+              Следующие эпизоды и актуальные даты
+            </p>
+          </div>
+          {Object.entries(
+            (feed?.schedule ?? []).reduce(
+              (acc, item) => {
+                const key = getScheduleDayKey(item.episodes.next_date);
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(item);
+                return acc;
+              },
+              {} as Record<string, FeedScheduleItem[]>
+            )
+          )
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([dayKey, items]) => {
+              const labelSource = items[0]?.episodes.next_date;
+              return (
+                <div key={dayKey} className="schedule-day">
+                  <h3 className="schedule-day-title">
+                    {formatScheduleDayLabel(labelSource)}
+                  </h3>
+                  <div className="schedule-grid">
+                    {items.map((item, i) => (
+                      <article
+                        key={`${dayKey}-${i}`}
+                        className="schedule-card"
+                        onClick={() =>
+                          navigate(
+                            `/anime?url=${encodeURIComponent(item.anime_url)}`,
+                            { state: { seed: seedFromSchedule(item) } }
+                          )
+                        }
+                      >
+                        <div className="schedule-media">
+                          <img
+                            src={
+                              item.poster.huge.startsWith("http")
+                                ? item.poster.huge
+                                : `https:${item.poster.huge}`
+                            }
+                            alt={item.title}
+                          />
+                          <div className="schedule-badge">
+                            {item.episodes.aired} /{" "}
+                            {item.episodes.count || "?"}
+                          </div>
+                        </div>
+                        <div className="schedule-body">
+                          <h3 className="schedule-card-title">{item.title}</h3>
+                          <p className="schedule-card-desc">
+                            {item.description}
+                          </p>
+                          <div className="schedule-meta">
+                            <div className="schedule-meta-item">
+                              <span className="schedule-meta-label">
+                                След. серия
+                              </span>
+                              <span className="schedule-meta-value">
+                                {formatScheduleDate(item.episodes.next_date)}
+                              </span>
+                            </div>
+                            <div className="schedule-meta-item">
+                              <span className="schedule-meta-label">
+                                Прош. серия
+                              </span>
+                              <span className="schedule-meta-value">
+                                {formatScheduleDate(item.episodes.prev_date)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+        </section>
+      )}
+      {(feed?.recommends?.length ?? 0) > 0 && (
+        <section className="feed-section">
+          <div className="feed-section-header">
+            <h2 className="feed-section-title">Рекомендуем</h2>
+            <p className="feed-section-subtitle">Персональная подборка</p>
+          </div>
+          <div className="feed-shelf">
+            {feed?.recommends.map((item, i) => (
+              <div
+                key={`rec-${i}`}
+                className="feed-card-wrapper"
+                onClick={() =>
+                  navigate(
+                    `/anime?url=${encodeURIComponent(item.anime_url)}`,
+                    { state: { seed: seedFromFeed(item) } }
+                  )
+                }
+              >
+                {FeedAnimeCard(item)}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }
