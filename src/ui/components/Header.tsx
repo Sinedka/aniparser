@@ -3,6 +3,7 @@ import { FaSearch, FaHome, FaHeart } from "react-icons/fa";
 import { useState, useRef, useCallback } from "react";
 import WindowControllButtons from "./WindowControlButtons";
 import { useNavigate } from "react-router-dom";
+import appIcon from "../assets/icon.svg";
 
 export default function Header() {
   const [searchValue, setSearchValue] = useState("");
@@ -34,7 +35,10 @@ export default function Header() {
   return (
     <div className="header">
       <div className="header-left">
-        <h1>Anime Parser</h1>
+        <div className="header-brand">
+          <img className="header-app-icon" src={appIcon} alt="Anime Parser" />
+          <h1>AniParser</h1>
+        </div>
       </div>
 
       <div className="header-center">

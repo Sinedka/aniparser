@@ -13,16 +13,33 @@
   border-bottom: 1px solid var(--border);
   height: calc(var(--bar-height) - 1px);
   -webkit-app-region: drag;
+  position: relative;
 }
 
 .header-left {
   flex: 1;
 }
 
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 16px;
+}
+
+.header-app-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
 .header-center {
-  flex: 2;
+  flex: 0;
   display: flex;
   justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .header-right {
