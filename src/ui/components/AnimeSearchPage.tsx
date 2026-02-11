@@ -1,7 +1,7 @@
 import "./AnimeSearchPage.css";
 import { Search, seedFromSearch, useSearchQuery } from "../../api/source/Yumme_anime_ru";
-import LoadingSpinner from "./LoadingSpinner";
 import { useNavigate } from "react-router-dom";
+import Skeleton from "react-loading-skeleton";
 
 function AnimePlate(
   search_data: Search,
@@ -71,12 +71,73 @@ function AnimePlate(
   );
 }
 
+function SkeletonPlate(baseColor: string, highlightColor: string) {
+  return (
+    <div className="anime-plate">
+      <div className="thumbnail">
+        <div style={{ width: "100%", aspectRatio: "5 / 7" }}>
+          <Skeleton
+            height="100%"
+            width="100%"
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+        </div>
+      </div>
+      <div className="anime-data">
+        <Skeleton
+          width="70%"
+          height={22}
+          baseColor={baseColor}
+          highlightColor={highlightColor}
+        />
+        <div className="small-info">
+          <Skeleton
+            width={90}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+          <Skeleton
+            width={80}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+          <Skeleton
+            width={60}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+        </div>
+        <Skeleton
+          count={3}
+          height={14}
+          baseColor={baseColor}
+          highlightColor={highlightColor}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function SearchPage({ query }: { query: string }) {
   const navigate = useNavigate();
-  const { data, isLoading, isError } = useSearchQuery(query);
+  const { data, isFetching, isError, isPending } = useSearchQuery(query);
+  const skeletonBase = "#2a2a2a";
+  const skeletonHighlight = "#3a3a3a";
 
-  if (isLoading) {
-    return <LoadingSpinner />;
+  if (isPending || (isFetching && !data)) {
+    return (
+      <div className="anime-list">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i}>
+            {SkeletonPlate(skeletonBase, skeletonHighlight)}
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (isError) {
@@ -87,6 +148,11 @@ export default function SearchPage({ query }: { query: string }) {
 
   return (
     <div className="anime-list">
+      {list.length === 0 ? (
+        <h2 className="search-empty">Ничего не найдено</h2>
+      ) : (
+        <h2 className="search-title">Поиск по запросу "{query}"</h2>
+      )}
       {list.map((obj, i) => (
         <div key={i}>{AnimePlate(obj, navigate)}</div>
       ))}

@@ -2,7 +2,7 @@ import { InfiniteScroll } from "./InfiniteScrol";
 import { Anime, useAnimeListInfiniteQuery } from "../../api/source/Yumme_anime_ru";
 import { SaveManager } from "../saveManager";
 import { useNavigate } from "react-router-dom";
-import LoadingSpinner from "./LoadingSpinner";
+import Skeleton from "react-loading-skeleton";
 
 
 function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
@@ -49,9 +49,62 @@ function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
   );
 }
 
+function SkeletonPlate(baseColor: string, highlightColor: string) {
+  return (
+    <div className="anime-plate">
+      <div className="thumbnail">
+        <div style={{ width: "100%", aspectRatio: "5 / 7" }}>
+          <Skeleton
+            height="100%"
+            width="100%"
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+        </div>
+      </div>
+      <div className="anime-data">
+        <Skeleton
+          width="70%"
+          height={22}
+          baseColor={baseColor}
+          highlightColor={highlightColor}
+        />
+        <div className="small-info">
+          <Skeleton
+            width={90}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+          <Skeleton
+            width={80}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+          <Skeleton
+            width={60}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+        </div>
+        <Skeleton
+          count={3}
+          height={14}
+          baseColor={baseColor}
+          highlightColor={highlightColor}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function HistoryPage() {
   const history = SaveManager.getHistory();
   const navigate = useNavigate();
+  const skeletonBase = "#2a2a2a";
+  const skeletonHighlight = "#3a3a3a";
   const {
     data,
     isLoading,
@@ -62,7 +115,16 @@ export default function HistoryPage() {
   } = useAnimeListInfiniteQuery(history);
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div>
+        <h1>История просмотров</h1>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i}>
+            {SkeletonPlate(skeletonBase, skeletonHighlight)}
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (isError) {

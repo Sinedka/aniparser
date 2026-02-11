@@ -1,8 +1,8 @@
 import "./OngoingPage.css";
 import { Ongoing, Anime, seedFromOngoing, useAnimeQuery, useOngoingsQuery } from "../../api/source/Yumme_anime_ru";
-import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
 import { useNavigate } from "react-router-dom";
+import Skeleton from "react-loading-skeleton";
 
 function OngoingPlate(ongoing: Ongoing) {
   const posterUrl = !ongoing.ongoingResult.poster.huge.startsWith("http")
@@ -74,10 +74,63 @@ function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
   );
 }
 
+function SkeletonPlate(baseColor: string, highlightColor: string) {
+  return (
+    <div className="anime-plate">
+      <div className="thumbnail">
+        <div style={{ width: "100%", aspectRatio: "5 / 7" }}>
+          <Skeleton
+            height="100%"
+            width="100%"
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+        </div>
+      </div>
+      <div className="anime-data">
+        <Skeleton
+          width="70%"
+          height={22}
+          baseColor={baseColor}
+          highlightColor={highlightColor}
+        />
+        <div className="small-info">
+          <Skeleton
+            width={90}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+          <Skeleton
+            width={80}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+          <Skeleton
+            width={60}
+            height={20}
+            baseColor={baseColor}
+            highlightColor={highlightColor}
+          />
+        </div>
+        <Skeleton
+          count={3}
+          height={14}
+          baseColor={baseColor}
+          highlightColor={highlightColor}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function OngoingPage() {
   const history = SaveManager.getHistory();
   const latestUrl = history[0] || null;
   const navigate = useNavigate();
+  const skeletonBase = "#2a2a2a";
+  const skeletonHighlight = "#3a3a3a";
 
   const {
     data: ongoings,
@@ -91,7 +144,54 @@ export default function OngoingPage() {
   );
 
   if (isOngoingsLoading) {
-    return <LoadingSpinner />;
+    return (
+      <>
+        {latestUrl && (
+          <div className="history-Background">
+            <h2 className="continue-watching"> Продолжение просмотра </h2>
+            {SkeletonPlate(skeletonBase, skeletonHighlight)}
+            <button
+              className="full-history-button"
+              onClick={() => navigate("/history")}
+            >
+              вся история
+            </button>
+          </div>
+        )}
+        <div className="flip-cards-container">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} className="flip-card-wrapper">
+              <div className="flip-card">
+                <div className="flip-card-front">
+                  <Skeleton
+                    height="100%"
+                    width="100%"
+                    baseColor={skeletonBase}
+                    highlightColor={skeletonHighlight}
+                  />
+                </div>
+                <div className="flip-card-back">
+                  <div className="flip-card-back-content">
+                    <Skeleton
+                      width="80%"
+                      height={22}
+                      baseColor={skeletonBase}
+                      highlightColor={skeletonHighlight}
+                    />
+                    <Skeleton
+                      count={3}
+                      height={12}
+                      baseColor={skeletonBase}
+                      highlightColor={skeletonHighlight}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
   }
 
   if (isOngoingsError) {
@@ -104,13 +204,25 @@ export default function OngoingPage() {
 
   return (
     <>
-      {latestAnime &&
-      <div className="history-Background">
-        <h2 className="continue-watching"> Продолжение просмотра </h2>
+      {latestUrl && !latestAnime && (
+        <div className="history-Background">
+          <h2 className="continue-watching"> Продолжение просмотра </h2>
+          <div className="anime-plate">
+            <Skeleton
+              height={180}
+              baseColor={skeletonBase}
+              highlightColor={skeletonHighlight}
+            />
+          </div>
+        </div>
+      )}
+      {latestAnime && (
+        <div className="history-Background">
+          <h2 className="continue-watching"> Продолжение просмотра </h2>
           {AnimePlate(latestAnime, navigate)}
-        <button className="full-history-button" onClick={() => navigate("/history")}> вся история</button>
-      </div>
-      }
+          <button className="full-history-button" onClick={() => navigate("/history")}> вся история</button>
+        </div>
+      )}
       <div className="flip-cards-container">
         {(ongoings ?? []).map((obj, i) => (
           <div
