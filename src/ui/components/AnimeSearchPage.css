@@ -96,14 +96,14 @@
 }
 
 .star {
-  color: #666;
+  color: var(--rating-star-empty);
   font-size: 16px;
   transition: color 0.2s;
 }
 
 .star.filled {
-  color: #ffd700;
-  text-shadow: 0 0 2px rgba(255, 215, 0, 0.5);
+  color: var(--rating-star-filled);
+  text-shadow: 0 0 2px var(--rating-star-glow);
 }
 
 .rating-value {

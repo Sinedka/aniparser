@@ -17,10 +17,10 @@ export default function AnimePage({ url }: { url: string }) {
   const location = useLocation();
   const state = location.state as { anime?: Anime; seed?: AnimeSeed } | null;
   const seed = state?.anime?.animeResult ?? state?.seed ?? null;
-  const skeletonBase = "#2a2a2a";
-  const skeletonHighlight = "#3a3a3a";
+  const skeletonBase = "var(--skeleton-base)";
+  const skeletonHighlight = "var(--skeleton-highlight)";
 
-  const { data: animeData, isLoading, isError } = useAnimeQuery(url, {
+  const { data: animeData, isLoading, isError, isFetching } = useAnimeQuery(url, {
     initialData: state?.anime,
   });
 
@@ -85,25 +85,29 @@ export default function AnimePage({ url }: { url: string }) {
               }
               alt={display.title}
             />
-          ) : (
+          ) : isFetching ? (
             <Skeleton
               width={300}
               height={420}
               baseColor={skeletonBase}
               highlightColor={skeletonHighlight}
             />
+          ) : (
+            <div className="anime-page-thumbnail" />
           )}
         </div>
         <div className="anime-page-title-info">
           {display.title ? (
             <h1 className="anime-page-title">{display.title}</h1>
-          ) : (
+          ) : isFetching ? (
             <Skeleton
               width="70%"
               height={32}
               baseColor={skeletonBase}
               highlightColor={skeletonHighlight}
             />
+          ) : (
+            <h1 className="anime-page-title">Без названия</h1>
           )}
 
           <div className="anime-page-meta">
@@ -114,34 +118,34 @@ export default function AnimePage({ url }: { url: string }) {
               >
                 {display.anime_status.title}
               </div>
-            ) : (
+            ) : isFetching ? (
               <Skeleton
                 width={110}
                 height={28}
                 baseColor={skeletonBase}
                 highlightColor={skeletonHighlight}
               />
-            )}
+            ) : null}
             {display.type?.name ? (
               <div className="meta-el">{display.type.name}</div>
-            ) : (
+            ) : isFetching ? (
               <Skeleton
                 width={110}
                 height={28}
                 baseColor={skeletonBase}
                 highlightColor={skeletonHighlight}
               />
-            )}
+            ) : null}
             {display.year ? (
               <div className="meta-el">{display.year}</div>
-            ) : (
+            ) : isFetching ? (
               <Skeleton
                 width={110}
                 height={28}
                 baseColor={skeletonBase}
                 highlightColor={skeletonHighlight}
               />
-            )}
+            ) : null}
           </div>
           {display.genres && display.genres.length > 0 ? (
               <div className="anime-page-genres">
@@ -151,7 +155,7 @@ export default function AnimePage({ url }: { url: string }) {
                   </span>
                 ))}
               </div>
-            ) : (
+            ) : isFetching ? (
               <div className="anime-page-genres">
                 <Skeleton
                   width={90}
@@ -175,20 +179,22 @@ export default function AnimePage({ url }: { url: string }) {
                   borderRadius={12}
                 />
               </div>
+            ) : (
+              <div className="anime-page-genres">Нет жанров</div>
             )}
           {rating > 0 ? (
             <div className="rating-container-page">
               <div className="rating-stars">{stars}</div>
               <div className="rating-value">{rating.toFixed(1)}</div>
             </div>
-          ) : (
+          ) : isFetching ? (
             <Skeleton
               width={160}
               height={32}
               baseColor={skeletonBase}
               highlightColor={skeletonHighlight}
             />
-          )}
+          ) : null}
           {animeData?.players && animeData.players.length > 0 && (
             <button
               className="watch-button"
@@ -258,12 +264,14 @@ export default function AnimePage({ url }: { url: string }) {
           <p className="anime-page-description">
             {display.description}
           </p>
-        ) : (
+        ) : isFetching ? (
           <Skeleton
             height={120}
             baseColor={skeletonBase}
             highlightColor={skeletonHighlight}
           />
+        ) : (
+          <p className="anime-page-description">Описание отсутствует</p>
         )}
         {animeData?.animeResult.viewing_order &&
           animeData.animeResult.viewing_order.length > 0 && (

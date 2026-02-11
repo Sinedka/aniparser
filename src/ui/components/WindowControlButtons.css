@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #212832;
+  background: var(--window-control-background);
   border-radius: 100%;
   height: var(--height);
   aspect-ratio: 1;
@@ -25,7 +25,7 @@
 }
 
 .window-controll-buttons .fullscreen-window:hover{
-  background: #28C840;
+  background: var(--window-control-fullscreen);
 }
 
 
@@ -38,7 +38,7 @@
 }
 
 .window-controll-buttons .hide-window:hover {
-  background: #FDBC2E;
+  background: var(--window-control-hide);
 }
 
 
@@ -47,7 +47,7 @@
 }
 
 .window-controll-buttons .close-window:hover {
-  background: #FD5F57;
+  background: var(--window-control-close);
 }
 
 
@@ -74,5 +74,5 @@
 
 .window-controll-buttons button svg{
   margin: 5px;
-  color: white;
+  color: var(--text-primary);
 }

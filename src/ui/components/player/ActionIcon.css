@@ -3,8 +3,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
+  background-color: var(--surface-overlay-70);
+  color: var(--text-primary);
   padding: 20px;
   border-radius: 50%;
   font-size: 2em;
@@ -45,7 +45,7 @@
 .volume-text {
   font-size: 0.6em;
   font-weight: bold;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--surface-overlay-70);
   padding: 2px 6px;
   border-radius: 10px;
   white-space: nowrap;
@@ -57,7 +57,7 @@
   right: -8px;
   font-size: 0.6em;
   font-weight: bold;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--surface-overlay-70);
   border-radius: 50%;
   width: 16px;
   height: 16px;

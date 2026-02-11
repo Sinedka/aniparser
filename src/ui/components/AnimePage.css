@@ -1,9 +1,9 @@
 .select-status {
   padding: 10px 15px;
-  color: white;
-  border: 2px solid #47a8f5;
+  color: var(--text-primary);
+  border: 2px solid var(--accent-border);
   border-radius: 8px;
-  background-color: #2196F3;
+  background-color: var(--accent-primary);
   font-size: 16px;
   cursor: pointer;
   outline: none;
@@ -87,12 +87,12 @@
 }
 
 .star {
-  color: #4a4a4a;
+  color: var(--rating-star-empty-strong);
   font-size: 1.2em;
 }
 
 .star.filled {
-  color: #ffd700;
+  color: var(--rating-star-filled);
 }
 
 .rating-value {
@@ -180,7 +180,7 @@
   line-height: 1.7;
   color: var(--text-secondary);
   font-size: 1.05em;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--surface-overlay-20);
   padding: 15px;
   border-radius: 8px;
   margin: 0 0 20px 0;
@@ -204,7 +204,7 @@
 }
 
 .viewing-order-item {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--surface-overlay-20);
   border-radius: 8px;
   padding: 15px;
   display: flex;

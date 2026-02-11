@@ -125,8 +125,8 @@ function SkeletonPlate(baseColor: string, highlightColor: string) {
 export default function SearchPage({ query }: { query: string }) {
   const navigate = useNavigate();
   const { data, isFetching, isError, isPending } = useSearchQuery(query);
-  const skeletonBase = "#2a2a2a";
-  const skeletonHighlight = "#3a3a3a";
+  const skeletonBase = "var(--skeleton-base)";
+  const skeletonHighlight = "var(--skeleton-highlight)";
 
   if (isPending || (isFetching && !data)) {
     return (

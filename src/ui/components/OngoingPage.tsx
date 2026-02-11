@@ -129,8 +129,8 @@ export default function OngoingPage() {
   const history = SaveManager.getHistory();
   const latestUrl = history[0] || null;
   const navigate = useNavigate();
-  const skeletonBase = "#2a2a2a";
-  const skeletonHighlight = "#3a3a3a";
+  const skeletonBase = "var(--skeleton-base)";
+  const skeletonHighlight = "var(--skeleton-highlight)";
 
   const {
     data: ongoings,

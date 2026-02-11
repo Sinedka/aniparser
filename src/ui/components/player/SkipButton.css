@@ -40,8 +40,8 @@
 }
 
 .video-js .skip-button {
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
+  background-color: var(--surface-overlay-70);
+  color: var(--text-primary);
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
@@ -61,7 +61,7 @@
 }
 
 .video-js .skip-button:hover {
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: var(--surface-overlay-90);
 }
 
 .video-js .skip-button-close {
@@ -72,7 +72,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--surface-overlay-light-20);
   cursor: pointer;
   transition: background-color 0.2s;
   padding: 2px;
@@ -85,7 +85,7 @@
 }
 
 .video-js .skip-button-close:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: var(--surface-overlay-light-30);
 }
 
 .video-js .skip-button-close svg {

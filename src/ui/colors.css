@@ -1,45 +1,124 @@
 :root {
   /* Основные цвета */
-  --background-primary: #121519;
-  --background-secondary: #1a1e25;
-  --background-tertiary: #242c38;
+  --background-primary: #0b0b0b;
+  --background-secondary: #111111;
+  --background-tertiary: #1a1a1a;
+
+  /* Поверхности */
+  --surface-card: #141414;
+  --surface-contrast: #1f1f1f;
+  --surface-contrast-strong: #2a2a2a;
+  --surface-overlay-20: rgba(0, 0, 0, 0.2);
+  --surface-overlay-70: rgba(0, 0, 0, 0.7);
+  --surface-overlay-80: rgba(0, 0, 0, 0.8);
+  --surface-overlay-90: rgba(0, 0, 0, 0.9);
+  --surface-overlay-95: rgba(0, 0, 0, 0.95);
+  --surface-overlay-light-10: rgba(255, 255, 255, 0.1);
+  --surface-overlay-light-20: rgba(255, 255, 255, 0.2);
+  --surface-overlay-light-30: rgba(255, 255, 255, 0.3);
+  --surface-overlay-light-40: rgba(255, 255, 255, 0.4);
+  --surface-muted: rgba(20, 20, 20, 0.7);
+  --surface-muted-hover: rgba(20, 20, 20, 0.9);
+  --surface-muted-solid: rgb(20, 20, 20);
+  --surface-elevated-80: rgba(28, 28, 28, 0.8);
+  --surface-elevated-90: rgba(40, 40, 40, 0.9);
+  --surface-elevated-95: rgba(28, 28, 28, 0.95);
 
   /* Текст */
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.8);
-  --text-disabled: rgba(255, 255, 255, 0.5);
+  --text-primary: #f5f5f5;
+  --text-secondary: rgba(245, 245, 245, 0.8);
+  --text-disabled: rgba(245, 245, 245, 0.5);
+  --text-body: #d8d8d8;
+  --text-muted: #a3a3a3;
+  --text-soft: #b8b8b8;
+  --text-contrast: #e6e6e6;
+  --text-star-empty: #5a5a5a;
 
   /* Акцентные цвета */
-  --accent-primary: #2196f3;
-  --accent-secondary: #1976d2;
+  --accent-primary: #1ed760;
+  --accent-secondary: #1aa34d;
+  --accent-strong: #1ed760;
+  --accent-border: #31e673;
+  --accent-light: rgba(30, 215, 96, 0.3);
+  --accent-warning: #f5c542;
+  --accent-warning-glow: rgba(245, 197, 66, 0.5);
+  --accent-toggle-off: #808080;
+  --accent-toggle-on: #008000;
 
   /* Границы и тени */
-  --border: rgba(255, 255, 255, 0.12);
-  --shadow: rgba(0, 0, 0, 0.25);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --shadow: rgba(0, 0, 0, 0.35);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.2);
+  --shadow-strong: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --shadow-popover: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --mask-solid: #000000;
 
   /* Состояния элементов */
   --input-background: rgba(255, 255, 255, 0.08);
   --input-background-focus: rgba(255, 255, 255, 0.15);
-  --input-outline: rgba(255, 255, 255, 0.2);
+  --input-outline: var(--border-strong);
 
   /* Градиенты */
-  --gradient-header: linear-gradient(135deg, #1a1e25 0%, #242c38 100%);
-  --gradient-button: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  --gradient-header: linear-gradient(135deg, #0f0f0f 0%, #1b1b1b 100%);
+  --gradient-button: linear-gradient(135deg, #1ed760 0%, #1aa34d 100%);
 
   /* Статусы */
   /* Основные статусы */
-  --status-ongoing: rgb(17, 147, 253);
+  --status-ongoing: rgb(30, 215, 96);
   --status-ongoing-text: #ffffff;
-  --status-completed: rgb(0, 197, 7);
+  --status-completed: rgb(30, 215, 96);
   --status-completed-text: #000000;
-  --status-announced: rgb(255, 193, 7);
+  --status-announced: rgb(245, 197, 66);
   --status-announced-text: #000000;
+  --status-onhold: rgb(245, 197, 66);
+  --status-onhold-text: #000000;
+  --status-canceled: rgb(244, 67, 54);
+  --status-canceled-text: #ffffff;
+  --status-planned: rgb(30, 215, 96);
+  --status-planned-text: #ffffff;
+
+  /* Статусы ошибок */
+  --error-primary: #ff3b30;
+  --error-secondary: #ff3b30;
 
   /* Плеер */
-  --player-background: #0c1014;
+  --player-background: #0a0a0a;
   --player-background-overlay: rgba(12, 16, 20, 0.8);
   --player-controls-background: rgba(12, 16, 20, 0.95);
-  --player-active-item: rgba(33, 150, 243, 0.3);
+  --player-active-item: rgba(30, 215, 96, 0.3);
   --player-border: rgba(255, 255, 255, 0.15);
   --player-loading-overlay: rgba(12, 16, 20, 0.7);
+
+  /* Элементы интерфейса */
+  --spinner-track: rgba(255, 255, 255, 0.08);
+  --spinner-indicator: #1ed760;
+  --skeleton-base: #1f1f1f;
+  --skeleton-highlight: #2a2a2a;
+
+  /* Рейтинг */
+  --rating-star-empty: #6b6b6b;
+  --rating-star-empty-strong: #555555;
+  --rating-star-filled: #1ed760;
+  --rating-star-glow: rgba(30, 215, 96, 0.5);
+
+  /* Переключатель сердца */
+  --heart-idle: #aab8c2;
+  --heart-active: #e2264d;
+  --heart-ring-1: #dd4688;
+  --heart-ring-2: #d46abf;
+  --heart-ring-3: #cc8ef5;
+  --heart-spark-1: #9cd8c3;
+  --heart-spark-2: #8ce8c3;
+  --heart-spark-3: #91d2fa;
+  --heart-spark-4: #f48ea7;
+  --heart-spark-5: #9fc7fa;
+
+  /* Кнопки окна */
+  --window-control-background: #1a1a1a;
+  --window-control-fullscreen: #28c840;
+  --window-control-hide: #fdbc2e;
+  --window-control-close: #fd5f57;
 }

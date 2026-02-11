@@ -4,11 +4,11 @@
   border: none;
   cursor: pointer;
   font-weight: 600;
-  background-color: gray;
-  color: white;
+  background-color: var(--accent-toggle-off);
+  color: var(--text-primary);
   transition: all 0.3s ease;
 }
 
 .toggle-button.on {
-  background-color: green;
+  background-color: var(--accent-toggle-on);
 }
