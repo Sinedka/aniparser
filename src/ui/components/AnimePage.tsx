@@ -1,6 +1,8 @@
 import "./AnimePage.css";
 import { useEffect, useState } from "react";
-import { useAnimeQuery } from "../../api/source/Yumme_anime_ru";
+import { useLocation } from "react-router-dom";
+import Skeleton from "react-loading-skeleton";
+import { Anime, AnimeSeed, useAnimeQuery } from "../../api/source/Yumme_anime_ru";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
 import HeartToggle from "./HeartToggle";
@@ -12,8 +14,15 @@ export default function AnimePage({ url }: { url: string }) {
     SaveManager.checkAnimeStatus(url)
   );
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as { anime?: Anime; seed?: AnimeSeed } | null;
+  const seed = state?.anime?.animeResult ?? state?.seed ?? null;
+  const skeletonBase = "#2a2a2a";
+  const skeletonHighlight = "#3a3a3a";
 
-  const { data: animeData, isLoading, isError } = useAnimeQuery(url);
+  const { data: animeData, isLoading, isError } = useAnimeQuery(url, {
+    initialData: state?.anime,
+  });
 
   useEffect(() => {
     setStatus(SaveManager.checkAnimeStatus(url));
@@ -23,13 +32,18 @@ export default function AnimePage({ url }: { url: string }) {
     SaveManager.setAnimeStatus(url, AnimeStatus);
   }, [AnimeStatus, url])
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading && !seed) return <LoadingSpinner />;
 
-  if (isError || !animeData) {
+  if (isError && !seed) {
     return <div>Ошибка при загрузке данных</div>;
   }
 
-  const rating = animeData.animeResult.rating.average;
+  const display = animeData?.animeResult ?? seed;
+  if (!display) {
+    return <LoadingSpinner />;
+  }
+
+  const rating = display.rating?.average ?? 0;
   const stars = Array(5)
     .fill(0)
     .map((_, index) => {
@@ -47,7 +61,7 @@ export default function AnimePage({ url }: { url: string }) {
   // Текст для кнопки в зависимости от наличия сохранения
   const getWatchButtonText = () => {
     const savedProgress = SaveManager.getAnimeProgress(
-      animeData.animeResult.anime_url,
+      display.anime_url,
     );
     if (savedProgress) {
       return `Продолжить просмотр с ${savedProgress.episode + 1} серии`;
@@ -60,47 +74,122 @@ export default function AnimePage({ url }: { url: string }) {
     <div className={"anime-page"}>
       <div className="anime-page-info">
         <div className="anime-page-poster">
-          <img
-            className="anime-page-thumbnail"
-            src={
-              animeData.animeResult.poster.huge &&
-                !animeData.animeResult.poster.huge.startsWith("http")
-                ? `https:${animeData.animeResult.poster.huge}`
-                : animeData.animeResult.poster.huge
-            }
-            alt={animeData.animeResult.title}
-          />
+          {display.poster?.huge ? (
+            <img
+              className="anime-page-thumbnail"
+              src={
+                display.poster.huge &&
+                !display.poster.huge.startsWith("http")
+                  ? `https:${display.poster.huge}`
+                  : display.poster.huge
+              }
+              alt={display.title}
+            />
+          ) : (
+            <Skeleton
+              width={300}
+              height={420}
+              baseColor={skeletonBase}
+              highlightColor={skeletonHighlight}
+            />
+          )}
         </div>
         <div className="anime-page-title-info">
-          <h1 className="anime-page-title">{animeData.animeResult.title}</h1>
+          {display.title ? (
+            <h1 className="anime-page-title">{display.title}</h1>
+          ) : (
+            <Skeleton
+              width="70%"
+              height={32}
+              baseColor={skeletonBase}
+              highlightColor={skeletonHighlight}
+            />
+          )}
 
           <div className="anime-page-meta">
-            <div
-              className="meta-el anime-status"
-              data-status={animeData.animeResult.anime_status.title}
-            >
-              {animeData.animeResult.anime_status.title}
-            </div>
-            <div className="meta-el">{animeData.animeResult.type.name}</div>
-            <div className="meta-el">{animeData.animeResult.year}</div>
+            {display.anime_status?.title ? (
+              <div
+                className="meta-el anime-status"
+                data-status={display.anime_status.title}
+              >
+                {display.anime_status.title}
+              </div>
+            ) : (
+              <Skeleton
+                width={110}
+                height={28}
+                baseColor={skeletonBase}
+                highlightColor={skeletonHighlight}
+              />
+            )}
+            {display.type?.name ? (
+              <div className="meta-el">{display.type.name}</div>
+            ) : (
+              <Skeleton
+                width={110}
+                height={28}
+                baseColor={skeletonBase}
+                highlightColor={skeletonHighlight}
+              />
+            )}
+            {display.year ? (
+              <div className="meta-el">{display.year}</div>
+            ) : (
+              <Skeleton
+                width={110}
+                height={28}
+                baseColor={skeletonBase}
+                highlightColor={skeletonHighlight}
+              />
+            )}
           </div>
-          {animeData.animeResult.genres &&
-            animeData.animeResult.genres.length > 0 && (
+          {display.genres && display.genres.length > 0 ? (
               <div className="anime-page-genres">
-                {animeData.animeResult.genres.map((genre, index) => (
+                {display.genres.map((genre, index) => (
                   <span key={index} className="genre-tag">
                     {genre.title}
                   </span>
                 ))}
               </div>
+            ) : (
+              <div className="anime-page-genres">
+                <Skeleton
+                  width={90}
+                  height={24}
+                  baseColor={skeletonBase}
+                  highlightColor={skeletonHighlight}
+                  borderRadius={12}
+                />
+                <Skeleton
+                  width={90}
+                  height={24}
+                  baseColor={skeletonBase}
+                  highlightColor={skeletonHighlight}
+                  borderRadius={12}
+                />
+                <Skeleton
+                  width={90}
+                  height={24}
+                  baseColor={skeletonBase}
+                  highlightColor={skeletonHighlight}
+                  borderRadius={12}
+                />
+              </div>
             )}
-          {rating > 0 && (
+          {rating > 0 ? (
             <div className="rating-container-page">
               <div className="rating-stars">{stars}</div>
               <div className="rating-value">{rating.toFixed(1)}</div>
             </div>
+          ) : (
+            <Skeleton
+              width={160}
+              height={32}
+              baseColor={skeletonBase}
+              highlightColor={skeletonHighlight}
+            />
           )}
-          {animeData.players && animeData.players.length > 0 && (
+          {animeData?.players && animeData.players.length > 0 && (
             <button
               className="watch-button"
               onClick={() => {
@@ -113,9 +202,9 @@ export default function AnimePage({ url }: { url: string }) {
           )}
           <div className="playlists">
             <HeartToggle 
-              enabledByDefault={SaveManager.CheckIsFavourite(animeData.animeResult.anime_url)} 
-              onEnable={() => SaveManager.addAnimeToFavourites(animeData.animeResult.anime_url)} 
-              onDisable={() => SaveManager.removeAnimeFromFavourites(animeData.animeResult.anime_url)}
+              enabledByDefault={SaveManager.CheckIsFavourite(display.anime_url)} 
+              onEnable={() => SaveManager.addAnimeToFavourites(display.anime_url)} 
+              onDisable={() => SaveManager.removeAnimeFromFavourites(display.anime_url)}
             />
             <select
               className="select-status"
@@ -165,10 +254,18 @@ export default function AnimePage({ url }: { url: string }) {
         </div>
       </div>
       <div className="anime-page-description-container">
-        <p className="anime-page-description">
-          {animeData.animeResult.description}
-        </p>
-        {animeData.animeResult.viewing_order &&
+        {display.description ? (
+          <p className="anime-page-description">
+            {display.description}
+          </p>
+        ) : (
+          <Skeleton
+            height={120}
+            baseColor={skeletonBase}
+            highlightColor={skeletonHighlight}
+          />
+        )}
+        {animeData?.animeResult.viewing_order &&
           animeData.animeResult.viewing_order.length > 0 && (
             <div className="viewing-order-container">
               <h2 className="viewing-order-title">Порядок просмотра</h2>
@@ -177,7 +274,21 @@ export default function AnimePage({ url }: { url: string }) {
                   <div
                     key={index}
                     className="viewing-order-item"
-                    onClick={() => navigate(`/anime?url=${encodeURIComponent(item.anime_url)}`)}
+                    onClick={() =>
+                      navigate(`/anime?url=${encodeURIComponent(item.anime_url)}`, {
+                        state: {
+                          seed: {
+                            anime_url: item.anime_url,
+                            title: item.title,
+                            poster: item.poster,
+                            description: item.description,
+                            anime_status: item.anime_status,
+                            type: item.type,
+                            year: item.year,
+                          },
+                        },
+                      })
+                    }
                     style={{ cursor: "pointer" }}
                   >
                     <div className="viewing-order-item-poster">

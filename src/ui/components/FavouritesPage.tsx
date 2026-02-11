@@ -13,7 +13,11 @@ function AnimePlate(
       className="anime-plate"
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => navigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`)}
+      onClick={() =>
+        navigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`, {
+          state: { anime: animeData },
+        })
+      }
     >
       <div className="thumbnail">
         <img

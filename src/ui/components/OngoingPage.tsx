@@ -1,5 +1,5 @@
 import "./OngoingPage.css";
-import { Ongoing, Anime, useAnimeQuery, useOngoingsQuery } from "../../api/source/Yumme_anime_ru";
+import { Ongoing, Anime, seedFromOngoing, useAnimeQuery, useOngoingsQuery } from "../../api/source/Yumme_anime_ru";
 import LoadingSpinner from "./LoadingSpinner";
 import { SaveManager } from "../saveManager";
 import { useNavigate } from "react-router-dom";
@@ -36,7 +36,11 @@ function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
       className="anime-plate"
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => navigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`)}
+      onClick={() =>
+        navigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`, {
+          state: { anime: animeData },
+        })
+      }
     >
       <div className="thumbnail">
         <img
@@ -112,7 +116,11 @@ export default function OngoingPage() {
           <div
             key={i}
             className="flip-card-wrapper"
-            onClick={() => navigate(`/anime?url=${encodeURIComponent(obj.ongoingResult.anime_url)}`)}
+            onClick={() =>
+              navigate(`/anime?url=${encodeURIComponent(obj.ongoingResult.anime_url)}`, {
+                state: { seed: seedFromOngoing(obj) },
+              })
+            }
           >
             {OngoingPlate(obj)}
           </div>

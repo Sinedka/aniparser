@@ -37,7 +37,7 @@ interface EpisodeData {
   videos: VideoInfo[];
 }
 
-interface SearchResult {
+export interface SearchResult {
   anime_id: number;
   anime_status: AnimeStatus;
   anime_url: string;
@@ -54,7 +54,7 @@ interface SearchResult {
   year: number;
 }
 
-interface OngoingResult {
+export interface OngoingResult {
   title: string;
   description: string;
   poster: Poster;
@@ -63,7 +63,7 @@ interface OngoingResult {
   episodes: Episodes;
 }
 
-interface AnimeResult {
+export interface AnimeResult {
   anime_id: number;
   anime_status: AnimeStatus;
   anime_url: string;
@@ -200,12 +200,13 @@ export async function fetchOngoings(
 
 export function useAnimeQuery(
   url: string | null,
-  options: { enabled?: boolean } = {}
+  options: { enabled?: boolean; initialData?: Anime } = {}
 ) {
   return useQuery({
     queryKey: yummyKeys.anime(url ?? ""),
     queryFn: () => fetchAnime(url as string),
     enabled: (options.enabled ?? true) && !!url,
+    initialData: options.initialData,
   });
 }
 
@@ -246,6 +247,46 @@ export function useAnimeListInfiniteQuery(urls: string[], pageSize = 10) {
     },
     enabled: urls.length > 0,
   });
+}
+
+export type AnimeSeed = Partial<
+  Pick<
+    AnimeResult,
+    | "anime_url"
+    | "title"
+    | "poster"
+    | "description"
+    | "anime_status"
+    | "type"
+    | "year"
+    | "rating"
+    | "genres"
+  >
+> &
+  Pick<AnimeResult, "anime_url" | "title" | "poster">;
+
+export function seedFromSearch(search: Search): AnimeSeed {
+  const result = search.searchResult;
+  return {
+    anime_url: result.anime_url,
+    title: result.title,
+    poster: result.poster,
+    description: result.description,
+    anime_status: result.anime_status,
+    type: result.type,
+    year: result.year,
+    rating: result.rating,
+  };
+}
+
+export function seedFromOngoing(ongoing: Ongoing): AnimeSeed {
+  const result = ongoing.ongoingResult;
+  return {
+    anime_url: result.anime_url,
+    title: result.title,
+    poster: result.poster,
+    description: result.description,
+  };
 }
 
 // Основные классы

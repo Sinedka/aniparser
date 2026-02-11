@@ -1,5 +1,5 @@
 import "./AnimeSearchPage.css";
-import { Search, useSearchQuery } from "../../api/source/Yumme_anime_ru";
+import { Search, seedFromSearch, useSearchQuery } from "../../api/source/Yumme_anime_ru";
 import LoadingSpinner from "./LoadingSpinner";
 import { useNavigate } from "react-router-dom";
 
@@ -27,7 +27,11 @@ function AnimePlate(
       className="anime-plate"
       target="_blank"
       rel="noopener noreferrer"
-      onClick={() => navigate(`/anime?url=${encodeURIComponent(search_data.searchResult.anime_url)}`)}
+      onClick={() =>
+        navigate(`/anime?url=${encodeURIComponent(search_data.searchResult.anime_url)}`, {
+          state: { seed: seedFromSearch(search_data) },
+        })
+      }
     >
       <div className="thumbnail">
         <img
