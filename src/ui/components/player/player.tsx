@@ -125,7 +125,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
     const options = {
       autoplay: true,
-      controls: true,
+      controls: false,
       responsive: true,
       fluid: false,
       fill: true,
@@ -133,17 +133,6 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       playbackRates: [0.5, 1, 1.5, 2],
       sources: sources,
       errorDisplay: false,
-      controlBar: {
-        children: [
-          "playToggle",
-          "volumePanel",
-          "progressControl",
-          "playbackRateMenuButton",
-          "qualitySelector",
-          "pictureInPictureToggle",
-          "fullscreenToggle",
-        ],
-      },
     };
 
     function handleGlobalHotkeys(e: KeyboardEvent): void {
@@ -365,7 +354,27 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   }, [sources]);
 
   return (
-    <div className="video-container" data-vjs-player ref={playerContainerRef}>
+    <div
+      className="video-container"
+      data-vjs-player
+      ref={playerContainerRef}
+      onClick={(event) => {
+        if (!playerRef.current) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.closest(".player-controls-root")) return;
+        if (target?.closest(".skip-button")) return;
+        if (target?.closest(".keymap-button")) return;
+        if (playerRef.current.paused()) {
+          setCurrentAction("play");
+          setActionTimestamp(Date.now());
+          playerRef.current.play();
+        } else {
+          setCurrentAction("pause");
+          setActionTimestamp(Date.now());
+          playerRef.current.pause();
+        }
+      }}
+    >
       <div ref={videoRef} className="video-container" />
       {currentAction && (
         <ActionIcon
@@ -388,6 +397,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
             SetVideoParams={setVideoParams}
             videoParams={videoParams}
             anime={anime}
+            sources={sources}
           />
         </>
       )}

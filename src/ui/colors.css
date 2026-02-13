@@ -91,6 +91,55 @@
   --player-active-item: rgba(30, 215, 96, 0.3);
   --player-border: rgba(255, 255, 255, 0.15);
   --player-loading-overlay: rgba(12, 16, 20, 0.7);
+  --player-controls-top-height: 40px;
+  --player-select-row-height: 40px;
+  --player-select-open-shift: 40px;
+  --player-control-button-size: 36px;
+  --player-control-icon-size: 20px;
+  --player-control-radius: 10px;
+  --player-select-radius: 10px;
+  --player-inline-radius: 999px;
+  --player-time-font-size: 14px;
+  --player-inline-font-size: 13px;
+  --player-seek-thumb-size: 14px;
+  --player-vertical-gap: 10px;
+  --player-controls-gradient: linear-gradient(
+    180deg,
+    rgba(8, 8, 10, 0) 0%,
+    rgba(8, 8, 10, 0.85) 70%
+  );
+  --player-inline-border: rgba(255, 255, 255, 0.18);
+  --player-inline-bg: rgba(12, 12, 16, 0.8);
+  --player-inline-text: #ffffff;
+  --player-inline-hover-bg: rgba(20, 20, 26, 0.9);
+  --player-inline-hover-border: rgba(255, 255, 255, 0.3);
+  --player-inline-menu-bg: rgba(10, 10, 14, 0.98);
+  --player-inline-menu-border: rgba(255, 255, 255, 0.18);
+  --player-inline-menu-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  --player-inline-option-text: rgba(255, 255, 255, 0.8);
+  --player-inline-option-hover-bg: rgba(255, 255, 255, 0.12);
+  --player-inline-option-active-text: #ffffff;
+  --player-control-border: rgba(255, 255, 255, 0.12);
+  --player-control-bg: rgba(15, 15, 18, 0.7);
+  --player-control-text: #ffffff;
+  --player-control-hover-bg: rgba(28, 28, 34, 0.9);
+  --player-control-hover-border: rgba(255, 255, 255, 0.2);
+  --player-slider-fill: rgba(255, 255, 255, 0.9);
+  --player-slider-bg: rgba(255, 255, 255, 0.2);
+  --player-thumb-bg: #ffffff;
+  --player-thumb-border: rgba(0, 0, 0, 0.35);
+  --player-thumb-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --player-volume-thumb-border: rgba(0, 0, 0, 0.3);
+  --player-time-text: rgba(255, 255, 255, 0.85);
+  --player-stacked-border: rgba(255, 255, 255, 0.14);
+  --player-stacked-bg: rgba(12, 12, 16, 0.55);
+  --player-stacked-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+  --player-stacked-text: rgba(255, 255, 255, 0.78);
+  --player-stacked-hover-bg: rgba(200, 200, 200, 0.14);
+  --player-stacked-active-bg: rgba(255, 255, 255, 0.14);
+  --player-stacked-active-text: #ffffff;
+  --player-stacked-search-text: rgba(255, 255, 255, 0.92);
+  --player-stacked-option-font-size: 15px;
 
   /* Элементы интерфейса */
   --spinner-track: rgba(255, 255, 255, 0.08);

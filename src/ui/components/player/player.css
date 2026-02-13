@@ -21,22 +21,6 @@
   object-fit: contain;
 }
 
-/* Переопределяем анимацию для панели управления VideoJS */
 .video-js .vjs-control-bar {
-  transition:
-    transform 0.3s ease-out,
-    opacity 0.3s ease-out !important;
-  transform: translateY(0);
-}
-
-/* Когда плеер неактивен и не на паузе, плавно перемещаем панель вниз */
-.video-js.vjs-user-inactive:not(.vjs-paused) .vjs-control-bar {
-  transform: translateY(100%);
-  opacity: 0;
-}
-
-/* Когда плеер на паузе и неактивен, скрываем панель */
-.video-js.vjs-paused.vjs-user-inactive .vjs-control-bar {
-  transform: translateY(100%);
-  opacity: 0;
+  display: none;
 }
