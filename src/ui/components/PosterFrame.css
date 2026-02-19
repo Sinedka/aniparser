@@ -1,0 +1,48 @@
+.poster-frame {
+  position: relative;
+  display: inline-flex;
+  --poster-border: transparent;
+  --poster-radius: 12px;
+  padding: 2px 3px 3px;
+  border-radius: calc(var(--poster-radius) + 4px);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--poster-border) 90%, transparent) 0%,
+    color-mix(in srgb, var(--poster-border) 35%, transparent) 55%,
+    transparent 100%
+  );
+  box-sizing: border-box;
+}
+
+.poster-frame-media {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--poster-radius);
+  overflow: hidden;
+  aspect-ratio: 5 / 7;
+}
+
+.poster-frame-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
+.poster-frame[data-status="planned"] {
+  --poster-border: #3b82f6;
+}
+
+.poster-frame[data-status="watching"] {
+  --poster-border: #8b5cf6;
+}
+
+.poster-frame[data-status="completed"] {
+  --poster-border: #22c55e;
+}
+
+.poster-frame[data-status="dropped"] {
+  --poster-border: #ef4444;
+}

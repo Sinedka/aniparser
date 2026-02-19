@@ -2,12 +2,31 @@ import "./AnimeSearchPage.css";
 import { Search, seedFromSearch, useSearchQuery } from "../../api/source/Yumme_anime_ru";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
+import PosterFrame from "./PosterFrame";
+import { useStatusStore } from "../saveManager";
 
-function AnimePlate(
-  search_data: Search,
-  navigate: (to: string) => void
-) {
-  const rating = search_data.searchResult.rating.average;
+function AnimePlate({
+  searchData,
+  onNavigate,
+}: {
+  searchData: Search;
+  onNavigate: (to: string) => void;
+}) {
+  const statusKeyFromValue = (value: number) =>
+    value === 1
+      ? "planned"
+      : value === 2
+        ? "watching"
+        : value === 3
+          ? "completed"
+          : value === 5
+            ? "dropped"
+            : undefined;
+  const rating = searchData.searchResult.rating.average;
+  const statusValue = useStatusStore(
+    (state) => state.animeStatus[searchData.searchResult.anime_url] ?? 0,
+  );
+  const statusKey = statusKeyFromValue(statusValue);
   const stars = Array(5)
     .fill(0)
     .map((_, index) => {
@@ -28,44 +47,45 @@ function AnimePlate(
       target="_blank"
       rel="noopener noreferrer"
       onClick={() =>
-        navigate(`/anime?url=${encodeURIComponent(search_data.searchResult.anime_url)}`, {
-          state: { seed: seedFromSearch(search_data) },
+        onNavigate(`/anime?url=${encodeURIComponent(searchData.searchResult.anime_url)}`, {
+          state: { seed: seedFromSearch(searchData) },
         })
       }
     >
-      <div className="thumbnail">
-        <img
-          className="thumbnail-img"
-          src={
-            !search_data.searchResult.poster.huge.startsWith("http")
-              ? `https:${search_data.searchResult.poster.huge}`
-              : search_data.searchResult.poster.huge
-          }
-          alt={search_data.searchResult.title}
-        />
+      <PosterFrame
+        className="thumbnail"
+        status={statusKey}
+        src={
+          !searchData.searchResult.poster.huge.startsWith("http")
+            ? `https:${searchData.searchResult.poster.huge}`
+            : searchData.searchResult.poster.huge
+        }
+        alt={searchData.searchResult.title}
+        imgClassName="thumbnail-img"
+      >
         {rating > 0 && (
           <div className="rating-container">
             <div className="rating-stars">{stars}</div>
             <div className="rating-value">{rating.toFixed(1)}</div>
           </div>
         )}
-      </div>
+      </PosterFrame>
       <div className="anime-data">
-        <h3 className="title">{search_data.searchResult.title}</h3>
+        <h3 className="title">{searchData.searchResult.title}</h3>
         <div className="small-info">
           <div
             className="small-info-el anime-status"
-            data-status={search_data.searchResult.anime_status.title}
+            data-status={searchData.searchResult.anime_status.title}
           >
-            {search_data.searchResult.anime_status.title}
+            {searchData.searchResult.anime_status.title}
           </div>
           <div className="small-info-el">
-            {search_data.searchResult.type.name}
+            {searchData.searchResult.type.name}
           </div>
-          <div className="small-info-el">{search_data.searchResult.year}</div>
+          <div className="small-info-el">{searchData.searchResult.year}</div>
         </div>
 
-        <p className="description">{search_data.searchResult.description}</p>
+        <p className="description">{searchData.searchResult.description}</p>
       </div>
     </a>
   );
@@ -75,7 +95,7 @@ function SkeletonPlate(baseColor: string, highlightColor: string) {
   return (
     <div className="anime-plate">
       <div className="thumbnail">
-        <div style={{ width: "100%", aspectRatio: "5 / 7" }}>
+        <div className="poster-skeleton">
           <Skeleton
             height="100%"
             width="100%"
@@ -154,7 +174,9 @@ export default function SearchPage({ query }: { query: string }) {
         <h2 className="search-title">Поиск по запросу "{query}"</h2>
       )}
       {list.map((obj, i) => (
-        <div key={i}>{AnimePlate(obj, navigate)}</div>
+        <div key={i}>
+          <AnimePlate searchData={obj} onNavigate={navigate} />
+        </div>
       ))}
     </div>
   );

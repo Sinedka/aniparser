@@ -1,33 +1,55 @@
 import { InfiniteScroll } from "./InfiniteScrol";
 import { Anime, useAnimeListInfiniteQuery } from "../../api/source/Yumme_anime_ru";
-import { SaveManager } from "../saveManager";
+import { useHistoryStore, useStatusStore } from "../saveManager";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
+import PosterFrame from "./PosterFrame";
 
 
-function AnimePlate(animeData: Anime, navigate: (to: string) => void) {
+function AnimePlate({
+  animeData,
+  onNavigate,
+}: {
+  animeData: Anime;
+  onNavigate: (to: string, options?: { state?: unknown }) => void;
+}) {
+  const statusKeyFromValue = (value: number) =>
+    value === 1
+      ? "planned"
+      : value === 2
+        ? "watching"
+        : value === 3
+          ? "completed"
+          : value === 5
+            ? "dropped"
+            : undefined;
+  const statusValue = useStatusStore(
+    (state) => state.animeStatus[animeData.animeResult.anime_url] ?? 0,
+  );
+  const statusKey = statusKeyFromValue(statusValue);
   return (
     <a
       className="anime-plate"
       target="_blank"
       rel="noopener noreferrer"
       onClick={() =>
-        navigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`, {
+        onNavigate(`/anime?url=${encodeURIComponent(animeData.animeResult.anime_url)}`, {
           state: { anime: animeData },
         })
       }
     >
-      <div className="thumbnail">
-        <img
-          className="thumbnail-img"
-          src={
-            !animeData.animeResult.poster.huge.startsWith("http")
-              ? `https:${animeData.animeResult.poster.huge}`
-              : animeData.animeResult.poster.huge
-          }
-          alt={animeData.animeResult.title}
-        />
-      </div>
+      <PosterFrame
+        className="thumbnail"
+        status={statusKey}
+        src={
+          !animeData.animeResult.poster.huge.startsWith("http")
+            ? `https:${animeData.animeResult.poster.huge}`
+            : animeData.animeResult.poster.huge
+        }
+        alt={animeData.animeResult.title}
+        imgClassName="thumbnail-img"
+      >
+      </PosterFrame>
       <div className="anime-data">
         <h3 className="title">{animeData.animeResult.title}</h3>
         <div className="small-info">
@@ -53,7 +75,7 @@ function SkeletonPlate(baseColor: string, highlightColor: string) {
   return (
     <div className="anime-plate">
       <div className="thumbnail">
-        <div style={{ width: "100%", aspectRatio: "5 / 7" }}>
+        <div className="poster-skeleton">
           <Skeleton
             height="100%"
             width="100%"
@@ -101,7 +123,7 @@ function SkeletonPlate(baseColor: string, highlightColor: string) {
 }
 
 export default function HistoryPage() {
-  const history = SaveManager.getHistory();
+  const history = useHistoryStore((state) => state.history);
   const navigate = useNavigate();
   const skeletonBase = "var(--skeleton-base)";
   const skeletonHighlight = "var(--skeleton-highlight)";
@@ -132,7 +154,13 @@ export default function HistoryPage() {
   }
 
   const items =
-    data?.pages.flat().map((anime) => AnimePlate(anime, navigate)) ?? [];
+    data?.pages.flat().map((anime) => (
+      <AnimePlate
+        key={anime.animeResult.anime_url}
+        animeData={anime}
+        onNavigate={navigate}
+      />
+    )) ?? [];
 
   return (
     <div>

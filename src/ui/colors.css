@@ -93,7 +93,7 @@
   --player-loading-overlay: rgba(12, 16, 20, 0.7);
   --player-controls-top-height: 40px;
   --player-select-row-height: 40px;
-  --player-select-open-shift: 40px;
+  --player-select-open-shift: 45px;
   --player-control-button-size: 36px;
   --player-control-icon-size: 20px;
   --player-control-radius: 10px;
@@ -124,7 +124,8 @@
   --player-control-text: #ffffff;
   --player-control-hover-bg: rgba(28, 28, 34, 0.9);
   --player-control-hover-border: rgba(255, 255, 255, 0.2);
-  --player-slider-fill: rgba(255, 255, 255, 0.9);
+  --player-slider-fill: var(--accent-primary);
+  --player-slider-buffer: rgba(255, 255, 255, 0.35);
   --player-slider-bg: rgba(255, 255, 255, 0.2);
   --player-thumb-bg: #ffffff;
   --player-thumb-border: rgba(0, 0, 0, 0.35);

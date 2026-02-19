@@ -1,15 +1,142 @@
-.select-status {
-  padding: 10px 15px;
+.custom-select {
+  position: relative;
+  min-width: 210px;
+  --select-accent: transparent;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  padding: 10px 14px;
   color: var(--text-primary);
-  border: 2px solid var(--accent-border);
-  border-radius: 8px;
-  background-color: var(--accent-primary);
-  font-size: 16px;
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--input-background);
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   outline: none;
-  appearance: none; 
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 8px 20px var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.custom-select[data-status="planned"] {
+  --select-accent: #3b82f6;
+}
+
+.custom-select[data-status="watching"] {
+  --select-accent: #8b5cf6;
+}
+
+.custom-select[data-status="completed"] {
+  --select-accent: #22c55e;
+}
+
+.custom-select[data-status="dropped"] {
+  --select-accent: #ef4444;
+}
+
+.custom-select[data-status="planned"] .custom-select-trigger,
+.custom-select[data-status="watching"] .custom-select-trigger,
+.custom-select[data-status="completed"] .custom-select-trigger,
+.custom-select[data-status="dropped"] .custom-select-trigger {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--select-accent) 38%, var(--input-background)),
+    color-mix(in srgb, var(--select-accent) 12%, var(--input-background))
+  );
+  border-color: color-mix(in srgb, var(--select-accent) 70%, var(--accent-border));
+  box-shadow:
+    0 12px 26px color-mix(in srgb, var(--select-accent) 22%, transparent),
+    0 4px 10px var(--shadow);
+}
+
+.custom-select-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px var(--shadow);
+  border-color: var(--accent-primary);
+}
+
+.custom-select-trigger:focus-visible {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 35%, transparent);
+}
+
+.custom-select-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select-arrow {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.custom-select-arrow.open {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  right: 0;
+  left: 0;
+  margin-top: 8px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-border);
+  background: var(--background-tertiary);
+  box-shadow: 0 18px 30px var(--shadow);
+  display: grid;
+  gap: 4px;
+  z-index: 20;
+  animation: selectFadeIn 0.18s ease;
+}
+
+.custom-select-option {
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  --select-accent: transparent;
+}
+
+.custom-select-option[data-status="planned"] {
+  --select-accent: #3b82f6;
+}
+
+.custom-select-option[data-status="watching"] {
+  --select-accent: #8b5cf6;
+}
+
+.custom-select-option[data-status="completed"] {
+  --select-accent: #22c55e;
+}
+
+.custom-select-option[data-status="dropped"] {
+  --select-accent: #ef4444;
+}
+
+.custom-select-option:hover {
+  background: color-mix(in srgb, var(--select-accent) 35%, transparent);
+}
+
+.custom-select-option.selected {
+  background: color-mix(in srgb, var(--select-accent) 55%, transparent);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.custom-select-arrow {
+  color: color-mix(in srgb, var(--select-accent) 70%, var(--text-primary));
 }
 
 .anime-page {
@@ -23,11 +150,21 @@
 
 .playlists {
   order: 4;
-  height: 25px;
   display: flex;
   align-items: center;
-  transform: translateX(-10px);
+  gap: 12px;
   z-index: 999;
+}
+
+@keyframes selectFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .continue-watching {
@@ -45,6 +182,7 @@
 
 .anime-page-poster {
   flex-shrink: 0;
+  --poster-radius: 8px;
 }
 
 .anime-page-thumbnail {
@@ -213,6 +351,7 @@
 
 .viewing-order-item-poster {
   flex-shrink: 0;
+  --poster-radius: 6px;
 }
 
 .viewing-order-item-thumbnail {
@@ -220,6 +359,50 @@
   height: auto;
   border-radius: 6px;
   box-shadow: 0 4px 8px var(--shadow);
+}
+
+.viewing-order-item-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+  opacity: 0;
+}
+
+.viewing-order-item-overlay-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.viewing-order-item-overlay-chip {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.75em;
+  background: var(--surface-overlay-80);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.viewing-order-item-overlay-bottom {
+  display: flex;
+  align-items: flex-end;
+}
+
+.viewing-order-item-overlay-title {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--surface-overlay-80);
+  padding: 6px 8px;
+  border-radius: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .viewing-order-item-info {
@@ -257,7 +440,17 @@
   color: var(--status-ongoing-text);
 }
 
+.viewing-order-item-status[data-status="онгоинг"] {
+  background: var(--status-ongoing);
+  color: var(--status-ongoing-text);
+}
+
 .viewing-order-item-status[data-status="Завершён"] {
+  background: var(--status-completed);
+  color: var(--status-completed-text);
+}
+
+.viewing-order-item-status[data-status="вышел"] {
   background: var(--status-completed);
   color: var(--status-completed-text);
 }
@@ -267,7 +460,17 @@
   color: var(--status-announced-text);
 }
 
+.viewing-order-item-status[data-status="анонс"] {
+  background: var(--status-announced);
+  color: var(--status-announced-text);
+}
+
 .viewing-order-item-status[data-status="Отложен"] {
+  background: var(--status-onhold);
+  color: var(--status-onhold-text);
+}
+
+.viewing-order-item-status[data-status="отложен"] {
   background: var(--status-onhold);
   color: var(--status-onhold-text);
 }
@@ -277,7 +480,17 @@
   color: var(--status-canceled-text);
 }
 
+.viewing-order-item-status[data-status="отменён"] {
+  background: var(--status-canceled);
+  color: var(--status-canceled-text);
+}
+
 .viewing-order-item-status[data-status="Запланирован"] {
+  background: var(--status-planned);
+  color: var(--status-planned-text);
+}
+
+.viewing-order-item-status[data-status="запланирован"] {
   background: var(--status-planned);
   color: var(--status-planned-text);
 }

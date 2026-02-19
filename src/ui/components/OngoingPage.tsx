@@ -1,14 +1,15 @@
 import "./OngoingPage.css";
-import { useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   AnimeSeed,
   FeedResponse,
   useAnimeListInfiniteQuery,
   useFeedQuery,
 } from "../../api/source/Yumme_anime_ru";
-import { SaveManager } from "../saveManager";
+import { useHistoryStore, useStatusStore } from "../saveManager";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
+import PosterFrame from "./PosterFrame";
 
 type FeedAnimeItem = FeedResponse["new"][number];
 type FeedCardItem = Pick<
@@ -16,6 +17,57 @@ type FeedCardItem = Pick<
   "title" | "poster" | "anime_status" | "type" | "year" | "description" | "rating"
 >;
 type FeedScheduleItem = FeedResponse["schedule"][number];
+
+const ESTIMATED_SCHEDULE_CARD_HEIGHT = 360;
+const SCHEDULE_GRID_GAP = 18;
+const SCHEDULE_HEADER_HEIGHT = 56;
+const SCHEDULE_GRID_MIN_COL_WIDTH = 500;
+
+const statusKeyFromValue = (value: number) =>
+  value === 1
+    ? "planned"
+    : value === 2
+      ? "watching"
+      : value === 3
+        ? "completed"
+        : value === 5
+          ? "dropped"
+          : undefined;
+
+type DeferredSectionProps = {
+  estimatedHeight: number;
+  children: React.ReactNode;
+};
+
+const DeferredSection: React.FC<DeferredSectionProps> = ({ estimatedHeight, children }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (isVisible) return;
+    const node = ref.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setIsVisible(true);
+        }
+      },
+      { rootMargin: "800px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  return (
+    <div
+      ref={ref}
+      style={!isVisible ? { minHeight: `${estimatedHeight}px` } : undefined}
+    >
+      {isVisible ? children : null}
+    </div>
+  );
+};
 
 function seedFromFeed(item: FeedAnimeItem): AnimeSeed {
   return {
@@ -47,23 +99,38 @@ function seedFromSchedule(item: FeedScheduleItem): AnimeSeed {
   };
 }
 
-function FeedAnimeCard(item: FeedCardItem, options?: { showDescription?: boolean }) {
-  const showDescription = options?.showDescription ?? true;
+const FeedAnimeCardView = React.memo(function FeedAnimeCardView({
+  item,
+  showDescription,
+}: {
+  item: FeedCardItem;
+  showDescription: boolean;
+}) {
   const posterUrl = !item.poster.huge.startsWith("http")
     ? `https:${item.poster.huge}`
     : item.poster.huge;
+  const statusValue = useStatusStore(
+    (state) => state.animeStatus[item.anime_url] ?? 0,
+  );
+  const statusKey = statusKeyFromValue(statusValue);
 
   return (
     <article className="feed-card">
-      <div className="feed-card-media">
-        <img src={posterUrl} alt={item.title} />
+      <PosterFrame
+        className="feed-card-media"
+        status={statusKey}
+        src={posterUrl}
+        alt={item.title}
+        loading="lazy"
+        decoding="async"
+      >
         <div
           className="feed-card-status"
           data-status={item.anime_status?.title}
         >
           {item.anime_status?.title}
         </div>
-      </div>
+      </PosterFrame>
       <div className="feed-card-body">
         <h3 className="feed-card-title">{item.title}</h3>
         {showDescription && <p className="feed-card-desc">{item.description}</p>}
@@ -80,18 +147,96 @@ function FeedAnimeCard(item: FeedCardItem, options?: { showDescription?: boolean
       </div>
     </article>
   );
+});
+
+function FeedAnimeCard(item: FeedCardItem, options?: { showDescription?: boolean }) {
+  const showDescription = options?.showDescription ?? true;
+  return <FeedAnimeCardView item={item} showDescription={showDescription} />;
 }
+
+const ScheduleCard = React.memo(function ScheduleCard({
+  item,
+  onClick,
+}: {
+  item: FeedScheduleItem;
+  onClick: () => void;
+}) {
+  const statusValue = useStatusStore(
+    (state) => state.animeStatus[item.anime_url] ?? 0,
+  );
+  const statusKey = statusKeyFromValue(statusValue);
+  return (
+    <article className="schedule-card" onClick={onClick}>
+      <PosterFrame
+        className="schedule-media"
+        status={statusKey}
+        src={
+          item.poster.huge.startsWith("http")
+            ? item.poster.huge
+            : `https:${item.poster.huge}`
+        }
+        alt={item.title}
+        loading="lazy"
+        decoding="async"
+      >
+        <div className="schedule-badge">
+          {item.episodes.aired} / {item.episodes.count || "?"}
+        </div>
+      </PosterFrame>
+      <div className="schedule-body">
+        <h3 className="schedule-card-title">{item.title}</h3>
+        <p className="schedule-card-desc">{item.description}</p>
+        <div className="schedule-meta">
+          <div className="schedule-meta-item">
+            <span className="schedule-meta-label">След. серия</span>
+            <span className="schedule-meta-value">
+              {formatScheduleDate(item.episodes.next_date)}
+            </span>
+          </div>
+          <div className="schedule-meta-item">
+            <span className="schedule-meta-label">Прош. серия</span>
+            <span className="schedule-meta-value">
+              {formatScheduleDate(item.episodes.prev_date)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+});
+
+const ScheduleDay = React.memo(function ScheduleDay({
+  dayKey,
+  items,
+  labelSource,
+  onNavigate,
+}: {
+  dayKey: string;
+  items: FeedScheduleItem[];
+  labelSource?: number;
+  onNavigate: (item: FeedScheduleItem) => void;
+}) {
+  return (
+    <div className="schedule-day">
+      <h3 className="schedule-day-title">{formatScheduleDayLabel(labelSource)}</h3>
+      <div className="schedule-grid">
+        {items.map((item, i) => (
+          <ScheduleCard
+            key={`${dayKey}-${i}`}
+            item={item}
+            onClick={() => onNavigate(item)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
 
 function formatScheduleDate(ts?: number) {
   if (!ts) return "—";
   const date = new Date(ts * 1000);
   if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  return scheduleDateFormatter.format(date);
 }
 
 function getScheduleDayKey(ts?: number) {
@@ -108,18 +253,14 @@ function formatScheduleDayLabel(ts?: number) {
   if (!ts) return "Без даты";
   const date = new Date(ts * 1000);
   if (Number.isNaN(date.getTime())) return "Без даты";
-  return new Intl.DateTimeFormat("ru-RU", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  }).format(date);
+  return scheduleDayFormatter.format(date);
 }
 
 function SkeletonPlate(baseColor: string, highlightColor: string) {
   return (
     <div className="anime-plate">
       <div className="thumbnail">
-        <div style={{ width: "100%", aspectRatio: "5 / 7" }}>
+        <div className="poster-skeleton">
           <Skeleton
             height="100%"
             width="100%"
@@ -166,12 +307,28 @@ function SkeletonPlate(baseColor: string, highlightColor: string) {
   );
 }
 
+const scheduleDateFormatter = new Intl.DateTimeFormat("ru-RU", {
+  day: "2-digit",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const scheduleDayFormatter = new Intl.DateTimeFormat("ru-RU", {
+  weekday: "long",
+  day: "2-digit",
+  month: "long",
+});
+
 export default function MainPage() {
-  const historyUrls = SaveManager.getHistory();
+  const historyUrls = useHistoryStore((state) => state.history);
   const navigate = useNavigate();
   const skeletonBase = "var(--skeleton-base)";
   const skeletonHighlight = "var(--skeleton-highlight)";
   const historyShelfRef = useRef<HTMLDivElement | null>(null);
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1200,
+  );
 
   const {
     data: feed,
@@ -186,6 +343,49 @@ export default function MainPage() {
     hasNextPage,
     isFetchingNextPage,
   } = useAnimeListInfiniteQuery(historyUrls, 12);
+
+  const historyAnimes = useMemo(
+    () => historyPages?.pages.flat() ?? [],
+    [historyPages],
+  );
+  const scheduleGroups = useMemo(() => {
+    const schedule = feed?.schedule ?? [];
+    if (!schedule.length) return [];
+    const groups = schedule.reduce(
+      (acc, item) => {
+        const key = getScheduleDayKey(item.episodes.next_date);
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(item);
+        return acc;
+      },
+      {} as Record<string, FeedScheduleItem[]>,
+    );
+    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+  }, [feed?.schedule]);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const estimateScheduleHeight = useCallback(
+    (itemsCount: number) => {
+      const width = Math.max(0, viewportWidth - 64);
+      const columns = Math.max(
+        1,
+        Math.floor(width / SCHEDULE_GRID_MIN_COL_WIDTH),
+      );
+      const rows = Math.max(1, Math.ceil(itemsCount / columns));
+      return (
+        SCHEDULE_HEADER_HEIGHT +
+        rows * ESTIMATED_SCHEDULE_CARD_HEIGHT +
+        Math.max(0, rows - 1) * SCHEDULE_GRID_GAP
+      );
+    },
+    [viewportWidth],
+  );
+
 
   if (isFeedLoading) {
     return (
@@ -293,42 +493,6 @@ export default function MainPage() {
             ))}
           </div>
         </section>
-        <section className="feed-section">
-          <div className="feed-section-header">
-            <h2 className="feed-section-title">Анонсы</h2>
-            <p className="feed-section-subtitle">Готовьтесь заранее</p>
-          </div>
-          <div className="feed-shelf">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={`ann-skeleton-${i}`} className="feed-card-wrapper">
-                <div className="feed-card">
-                  <div className="feed-card-media">
-                    <Skeleton
-                      height="100%"
-                      width="100%"
-                      baseColor={skeletonBase}
-                      highlightColor={skeletonHighlight}
-                    />
-                  </div>
-                  <div className="feed-card-body">
-                    <Skeleton
-                      width="80%"
-                      height={18}
-                      baseColor={skeletonBase}
-                      highlightColor={skeletonHighlight}
-                    />
-                    <Skeleton
-                      count={2}
-                      height={12}
-                      baseColor={skeletonBase}
-                      highlightColor={skeletonHighlight}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       </>
     );
   }
@@ -341,7 +505,6 @@ export default function MainPage() {
     );
   }
 
-  const historyAnimes = historyPages?.pages.flat() ?? [];
   const handleHistoryScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const target = event.currentTarget;
     if (!hasNextPage || isFetchingNextPage) return;
@@ -498,81 +661,25 @@ export default function MainPage() {
               Следующие эпизоды и актуальные даты
             </p>
           </div>
-          {Object.entries(
-            (feed?.schedule ?? []).reduce(
-              (acc, item) => {
-                const key = getScheduleDayKey(item.episodes.next_date);
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(item);
-                return acc;
-              },
-              {} as Record<string, FeedScheduleItem[]>
-            )
-          )
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([dayKey, items]) => {
-              const labelSource = items[0]?.episodes.next_date;
-              return (
-                <div key={dayKey} className="schedule-day">
-                  <h3 className="schedule-day-title">
-                    {formatScheduleDayLabel(labelSource)}
-                  </h3>
-                  <div className="schedule-grid">
-                    {items.map((item, i) => (
-                      <article
-                        key={`${dayKey}-${i}`}
-                        className="schedule-card"
-                        onClick={() =>
-                          navigate(
-                            `/anime?url=${encodeURIComponent(item.anime_url)}`,
-                            { state: { seed: seedFromSchedule(item) } }
-                          )
-                        }
-                      >
-                        <div className="schedule-media">
-                          <img
-                            src={
-                              item.poster.huge.startsWith("http")
-                                ? item.poster.huge
-                                : `https:${item.poster.huge}`
-                            }
-                            alt={item.title}
-                          />
-                          <div className="schedule-badge">
-                            {item.episodes.aired} /{" "}
-                            {item.episodes.count || "?"}
-                          </div>
-                        </div>
-                        <div className="schedule-body">
-                          <h3 className="schedule-card-title">{item.title}</h3>
-                          <p className="schedule-card-desc">
-                            {item.description}
-                          </p>
-                          <div className="schedule-meta">
-                            <div className="schedule-meta-item">
-                              <span className="schedule-meta-label">
-                                След. серия
-                              </span>
-                              <span className="schedule-meta-value">
-                                {formatScheduleDate(item.episodes.next_date)}
-                              </span>
-                            </div>
-                            <div className="schedule-meta-item">
-                              <span className="schedule-meta-label">
-                                Прош. серия
-                              </span>
-                              <span className="schedule-meta-value">
-                                {formatScheduleDate(item.episodes.prev_date)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+          {scheduleGroups.map(([dayKey, items]) => {
+            const labelSource = items[0]?.episodes.next_date;
+            const estimatedHeight = estimateScheduleHeight(items.length);
+            return (
+              <DeferredSection key={dayKey} estimatedHeight={estimatedHeight}>
+                <ScheduleDay
+                  dayKey={dayKey}
+                  items={items}
+                  labelSource={labelSource}
+                  onNavigate={(item) =>
+                    navigate(
+                      `/anime?url=${encodeURIComponent(item.anime_url)}`,
+                      { state: { seed: seedFromSchedule(item) } },
+                    )
+                  }
+                />
+              </DeferredSection>
+            );
+          })}
         </section>
       )}
       {(feed?.recommends?.length ?? 0) > 0 && (

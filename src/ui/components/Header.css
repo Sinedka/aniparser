@@ -27,6 +27,13 @@
   padding-left: 16px;
 }
 
+.header-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+}
+
 .header-app-icon {
   width: 40px;
   height: 40px;
@@ -100,6 +107,18 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.header-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.header-button-compact {
+  padding: 6px 10px;
+  margin: 0;
 }
 
 .header-button:hover {

@@ -1,34 +1,37 @@
- .full-history-button {
-   width: calc(100% - 20px); /* уменьшаем ширину на 20px */
-   margin: 10px;
-   padding: 12px 30px;
-   background: var(--accent-primary);
-   color: var(--text-primary);
-   border: none;
-   border-radius: 6px;
-   font-size: 1.1em; 
-   cursor: pointer;
-   transition: all 0.3s ease;
-   text-transform: uppercase;
-   font-weight: 600;
-   letter-spacing: 0.5px;
-   order: 4;
-   align-self: flex-start;
- }
+.full-history-button {
+  width: calc(100% - 20px);
+  /* уменьшаем ширину на 20px */
+  margin: 10px;
+  padding: 12px 30px;
+  background: var(--accent-primary);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  order: 4;
+  align-self: flex-start;
+}
 
- .full-history-button:hover {
-   background: var(--accent-secondary);
-   transform: translateY(-2px);
-   box-shadow: 0 4px 12px var(--shadow);
- }
+.full-history-button:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
 
 .history-Background {
   /* display: flex; */
   gap: 30px;
-  width: 60%;  /* не больше */
+  width: 60%;
+  /* не больше */
   min-width: 520px;
 
-  margin: 0 auto; /* центр по X */
+  margin: 0 auto;
+  /* центр по X */
 
   /* padding: 20px; */
   background: var(--background-tertiary);
@@ -147,6 +150,7 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -181,6 +185,9 @@
 .thumbnail {
   display: flex;
   position: relative;
+  width: calc(400px * 5 / 7);
+  flex-shrink: 0;
+  --poster-radius: 16px;
 }
 
 .anime-plate {
@@ -191,7 +198,7 @@
   cursor: pointer;
   text-decoration: none;
   transition: background-color 0.3s;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .anime-plate:hover {
@@ -289,7 +296,6 @@
 }
 
 .flip-card-wrapper {
-  aspect-ratio: 5/7;
   position: relative;
   perspective: 1000px;
 }
@@ -441,6 +447,8 @@
   gap: 14px;
   width: calc(100% - 32px);
   margin: 0 auto;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
 }
 
 .schedule-day-title {
@@ -473,6 +481,8 @@
   position: relative;
   height: calc(var(--schedule-poster-width) * 7 / 5 + 32px);
   box-sizing: border-box;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 360px;
 }
 
 .schedule-card:hover {
@@ -483,11 +493,10 @@
 .schedule-media {
   position: relative;
   width: 100%;
-  aspect-ratio: 5 / 7;
   border-radius: 12px;
-  overflow: hidden;
   background: var(--surface-contrast);
   align-self: start;
+  --poster-radius: 12px;
 }
 
 .schedule-media img {
@@ -577,10 +586,10 @@
 
 .feed-section {
   width: 100%;
-  margin: 16px 0 0;
+  margin: 0;
   display: grid;
-  gap: 14px;
-  padding: 0 16px;
+  /* gap: 14px; */
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -589,6 +598,9 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-top: 14px;
 }
 
 .feed-section-title {
@@ -613,11 +625,14 @@
   padding-bottom: 6px;
   scroll-snap-type: x mandatory;
   align-items: stretch;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .history-shelf {
   width: 100%;
   overflow-x: auto;
+  padding-top: 14px;
   padding-bottom: 6px;
   padding-left: 0;
   padding-right: 0;
@@ -672,7 +687,7 @@
 }
 
 .history-arrow-left {
-  left: 6px;
+  left: 22px;
 }
 
 .history-arrow-right {
@@ -703,7 +718,11 @@
   position: relative;
   width: 100%;
   aspect-ratio: 5 / 7;
-  overflow: hidden;
+  --poster-radius: 16px 16px 0 0;
+}
+
+.schedule-media {
+  aspect-ratio: 5 / 7;
 }
 
 .feed-card-media img {
@@ -789,7 +808,6 @@
 
   .schedule-media {
     width: 100%;
-    aspect-ratio: 5 / 7;
   }
 }
 

@@ -1,7 +1,11 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
 interface PlayerSettings {
   playbackSpeed: number;
   volume: number;
   isMuted: boolean;
+  showRemainingTime: boolean;
 }
 
 interface AnimeSaveData {
@@ -15,164 +19,154 @@ const DEFAULT_SETTINGS: PlayerSettings = {
   playbackSpeed: 1.0,
   volume: 1.0,
   isMuted: false,
+  showRemainingTime: false,
 };
-
 
 const SETTINGS_KEY = "player_settings";
 const ANIME_PROGRESS_KEY = "anime_progress";
 const HISTORY_KEY = "animeHistory";
-const FAVOURITES_KEY = "favourites_list"
+const FAVOURITES_KEY = "favourites_list";
 const ANIME_STATUS_KEY = "anime_status";
 
+type SettingsStore = {
+  settings: PlayerSettings;
+  setPlaybackSpeed: (speed: number) => void;
+  setVolume: (volume: number) => void;
+  setMuted: (isMuted: boolean) => void;
+  setShowRemainingTime: (showRemainingTime: boolean) => void;
+};
 
-export class SaveManager {
-  private static settings: PlayerSettings = DEFAULT_SETTINGS;
-  private static animeProgress: Record<string, AnimeSaveData> = {};
-  private static animeStatus: Record<string, number> = {};
-  // 0: несмотрел
-  // 1: Запланированно
-  // 2: смотрю
-  // 3: просмотренно
-  // 4: отложенно
-  // 5: брошенно
-  // 6: не буду смотреть
-  private static history: string[] = [];
-  private static favourites: string[] = [];
+type ProgressStore = {
+  animeProgress: Record<string, AnimeSaveData>;
+  saveAnimeProgress: (url: string, data: AnimeSaveData) => void;
+  clearAnimeProgress: (url: string) => void;
+};
 
-  static {
-    this.initialize();
+type HistoryStore = {
+  history: string[];
+  saveAnimeToHistory: (url: string) => void;
+};
+
+type FavouritesStore = {
+  favourites: string[];
+  addAnimeToFavourites: (url: string) => void;
+  removeAnimeFromFavourites: (url: string) => void;
+};
+
+type StatusStore = {
+  animeStatus: Record<string, number>;
+  setAnimeStatus: (url: string, status: number) => void;
+};
+
+const loadLegacyState = () => {
+  if (typeof window === "undefined") return {};
+  try {
+    const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    const savedProgress = localStorage.getItem(ANIME_PROGRESS_KEY);
+    const savedHistory = localStorage.getItem(HISTORY_KEY);
+    const savedFavourites = localStorage.getItem(FAVOURITES_KEY);
+    const savedAnimeStatus = localStorage.getItem(ANIME_STATUS_KEY);
+    return {
+      settings: savedSettings
+        ? { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) }
+        : undefined,
+      animeProgress: savedProgress ? JSON.parse(savedProgress) : undefined,
+      history: savedHistory ? JSON.parse(savedHistory) || [] : undefined,
+      favourites: savedFavourites ? JSON.parse(savedFavourites) || [] : undefined,
+      animeStatus: savedAnimeStatus ? JSON.parse(savedAnimeStatus) : undefined,
+    };
+  } catch (error) {
+    console.error("Error loading saved data:", error);
+    return {};
   }
+};
 
-  private static initialize(): void {
-    try {
-      const savedSettings = localStorage.getItem(SETTINGS_KEY);
-      if (savedSettings) {
-        this.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(savedSettings) };
-      }
+const legacyState = loadLegacyState();
 
-      const savedProgress = localStorage.getItem(ANIME_PROGRESS_KEY);
-      if (savedProgress) {
-        this.animeProgress = JSON.parse(savedProgress);
-      }
+export const useSettingsStore = create<SettingsStore>()(
+  persist(
+    (set) => ({
+      settings: legacyState.settings ?? DEFAULT_SETTINGS,
+      setPlaybackSpeed: (speed) =>
+        set((state) => ({ settings: { ...state.settings, playbackSpeed: speed } })),
+      setVolume: (volume) =>
+        set((state) => ({ settings: { ...state.settings, volume } })),
+      setMuted: (isMuted) =>
+        set((state) => ({ settings: { ...state.settings, isMuted } })),
+      setShowRemainingTime: (showRemainingTime) =>
+        set((state) => ({ settings: { ...state.settings, showRemainingTime } })),
+    }),
+    { name: "save_settings" },
+  ),
+);
 
-      const savedHistory = localStorage.getItem(HISTORY_KEY);
-      if (savedHistory) {
-        this.history = JSON.parse(savedHistory) || [];
-      }
+export const useProgressStore = create<ProgressStore>()(
+  persist(
+    (set) => ({
+      animeProgress: legacyState.animeProgress ?? {},
+      saveAnimeProgress: (url, data) =>
+        set((state) => ({
+          animeProgress: { ...state.animeProgress, [url]: data },
+        })),
+      clearAnimeProgress: (url) =>
+        set((state) => {
+          const next = { ...state.animeProgress };
+          delete next[url];
+          return { animeProgress: next };
+        }),
+    }),
+    { name: "save_progress" },
+  ),
+);
 
-      const savedFavourites = localStorage.getItem(FAVOURITES_KEY);
-      if (savedFavourites) {
-        this.favourites = JSON.parse(savedFavourites) || [];
-      }
+export const useHistoryStore = create<HistoryStore>()(
+  persist(
+    (set) => ({
+      history: legacyState.history ?? [],
+      saveAnimeToHistory: (url) =>
+        set((state) => {
+          const next = state.history.filter((item) => item !== url);
+          next.unshift(url);
+          return { history: next };
+        }),
+    }),
+    { name: "save_history" },
+  ),
+);
 
-      const savedAnimeStatus = localStorage.getItem(ANIME_STATUS_KEY);
-      if (savedAnimeStatus) {
-        this.animeStatus = JSON.parse(savedAnimeStatus);
-      }
-    } catch (error) {
-      console.error("Error loading saved data:", error);
-    }
-  }
+export const useFavouritesStore = create<FavouritesStore>()(
+  persist(
+    (set) => ({
+      favourites: legacyState.favourites ?? [],
+      addAnimeToFavourites: (url) =>
+        set((state) => {
+          const next = state.favourites.filter((item) => item !== url);
+          next.unshift(url);
+          return { favourites: next };
+        }),
+      removeAnimeFromFavourites: (url) =>
+        set((state) => ({
+          favourites: state.favourites.filter((item) => item !== url),
+        })),
+    }),
+    { name: "save_favourites" },
+  ),
+);
 
-  static saveSettings(settings: Partial<PlayerSettings>): void {
-    this.settings = { ...this.settings, ...settings };
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
-    } catch (error) {
-      console.error("Error saving settings:", error);
-    }
-  }
+export const useStatusStore = create<StatusStore>()(
+  persist(
+    (set) => ({
+      animeStatus: legacyState.animeStatus ?? {},
+      setAnimeStatus: (url, status) =>
+        set((state) => {
+          const next = { ...state.animeStatus };
+          if (status === 0) delete next[url];
+          else next[url] = status;
+          return { animeStatus: next };
+        }),
+    }),
+    { name: "save_status" },
+  ),
+);
 
-  static getSettings(): PlayerSettings {
-    return { ...this.settings };
-  }
-
-  static setPlaybackSpeed(speed: number): void {
-    this.saveSettings({ playbackSpeed: speed });
-  }
-
-  static setVolume(volume: number): void {
-    this.saveSettings({ volume: volume });
-  }
-
-  static setMuted(isMuted: boolean): void {
-    this.saveSettings({ isMuted: isMuted });
-  }
-
-  static saveAnimeProgress(url: string, data: AnimeSaveData): void {
-    console.log("Saving anime progress for URL:", url, "Data:", data);
-    this.animeProgress[url] = data;
-    try {
-      localStorage.setItem(
-        ANIME_PROGRESS_KEY,
-        JSON.stringify(this.animeProgress),
-      );
-    } catch (error) {
-      console.error("Error saving anime progress:", error);
-    }
-  }
-
-  static getAnimeProgress(url: string): AnimeSaveData | undefined {
-    return this.animeProgress[url] || undefined;
-  }
-
-  static getAllAnimeProgress(): Record<string, AnimeSaveData> {
-    return { ...this.animeProgress };
-  }
-
-  static clearAnimeProgress(url: string): void {
-    delete this.animeProgress[url];
-    try {
-      localStorage.setItem(
-        ANIME_PROGRESS_KEY,
-        JSON.stringify(this.animeProgress),
-      );
-    } catch (error) {
-      console.error("Error clearing anime progress:", error);
-    }
-  }
-
-  static saveAnimeToHistory(url: string): void {
-    this.history = this.history.filter(item => item !== url);
-    this.history.unshift(url);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(this.history));
-  }
-
-  static getHistory(): string[] {
-    return this.history;
-  }
-
-  static addAnimeToFavourites(url: string): void {
-    this.favourites = this.favourites.filter(item => item !== url);
-    this.favourites.unshift(url);
-    localStorage.setItem(FAVOURITES_KEY, JSON.stringify(this.favourites));
-  }
-
-  static removeAnimeFromFavourites(url: string): void {
-    this.favourites = this.favourites.filter(item => item !== url);
-    localStorage.setItem(FAVOURITES_KEY, JSON.stringify(this.favourites));
-  }
-
-
-  static getFavourites(): string[] {
-    return this.favourites;
-  }
-
-  static CheckIsFavourite(url: string): boolean {
-    return this.favourites.includes(url);
-  }
-
-  static setAnimeStatus(url: string, status: number): void {
-    if (status == 0) delete this.animeStatus[url];
-    else this.animeStatus[url] = status;
-    localStorage.setItem(ANIME_STATUS_KEY, JSON.stringify(this.animeStatus));
-  }
-
-  static checkAnimeStatus(url: string): number {
-    return this.animeStatus[url] || 0;
-  }
-
-  static getFullAnimeStatus(): Record<string, number> {
-    return this.animeStatus;
-  }
-}
+export type { AnimeSaveData, PlayerSettings };

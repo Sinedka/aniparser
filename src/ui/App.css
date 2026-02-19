@@ -24,3 +24,51 @@ header h1 {
 ::-webkit-scrollbar {
   width: 0;
 }
+
+.poster-skeleton {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.page-shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.page-shell__prev {
+  flex: 0 0 var(--split-left, 20%);
+  min-width: 280px;
+  max-width: 530px;
+  border-right: 1px solid var(--border);
+  background: var(--background-secondary);
+  overflow: auto;
+}
+
+.page-shell__resizer {
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  flex: 0 0 auto;
+}
+
+.page-shell__resizer:hover {
+  background: var(--border);
+}
+
+.page-shell__main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+}
+
+.page-shell__prev.is-hiding {
+  animation: none;
+}

@@ -1,0 +1,157 @@
+.player-controls-root {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.player-controls-root.active .player-controls-bottom,
+.player-controls-root.active .player-controls-top {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.player-controls-top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--player-vertical-gap);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  height: var(--player-controls-top-height);
+  overflow: visible;
+}
+
+.stacked-select-wrap {
+  position: relative;
+  min-width: 200px;
+}
+
+.stacked-select {
+  position: relative;
+  height: var(--stacked-collapsed-height, 30px);
+  border-radius: var(--player-select-radius);
+  border: 1px solid var(--player-inline-border);
+  background: var(--player-inline-bg);
+  box-shadow: var(--player-inline-menu-shadow);
+  overflow: hidden;
+  transition: height 0.32s ease, transform 0.32s ease;
+}
+
+.stacked-select.open {
+  height: var(--stacked-list-height, 270px);
+  transform: translateY(var(--player-select-open-shift));
+}
+
+.stacked-select.no-anim {
+  transition: none;
+}
+
+.stacked-select.no-anim .stacked-select-scroll {
+  transition: none;
+}
+
+.stacked-select.no-anim .stacked-select-search {
+  transition: none;
+}
+
+.stacked-select.no-anim {
+  transition: none;
+}
+
+.stacked-select-viewport {
+  height: 100%;
+  overflow: hidden;
+}
+
+.stacked-select-scroll {
+  height: var(--stacked-list-height, 270px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(var(--stacked-closed-offset, calc((30px - 270px) / 2)));
+  transition: transform 0.32s ease;
+}
+
+.stacked-select.open .stacked-select-scroll {
+  transform: translateY(0);
+}
+
+.stacked-select-option {
+  height: var(--player-select-row-height);
+  min-height: var(--player-select-row-height);
+  max-height: var(--player-select-row-height);
+  line-height: var(--player-select-row-height);
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  color: var(--player-inline-option-text);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  font-size: var(--player-stacked-option-font-size, 13px);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.video-js .stacked-select-option {
+  font-size: var(--player-stacked-option-font-size, 13px);
+}
+
+.stacked-select-option:hover {
+  background: var(--player-inline-option-hover-bg);
+  color: var(--player-inline-option-active-text);
+}
+.stacked-select-option.active {
+  background: var(--player-inline-option-hover-bg);
+  color: var(--player-inline-option-active-text);
+}
+.stacked-select-option.keyboard {
+  background: var(--player-inline-option-hover-bg);
+  color: var(--player-inline-option-active-text);
+}
+
+.stacked-select-search {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--player-select-row-height);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease;
+}
+
+.stacked-select-search.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.stacked-select-search input {
+  width: 100%;
+  height: var(--player-select-row-height);
+  border-radius: var(--player-select-radius);
+  border: 1px solid var(--player-inline-border);
+  background: var(--player-inline-bg);
+  color: var(--player-inline-text);
+  padding: 0 10px;
+  font-size: 12px;
+  outline: none;
+  box-shadow: var(--player-inline-menu-shadow);
+}
+
+@media (max-width: 720px) {
+  .player-controls-top {
+    max-width: calc(100% - 20px);
+  }
+}

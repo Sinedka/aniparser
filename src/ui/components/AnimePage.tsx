@@ -1,36 +1,96 @@
 import "./AnimePage.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import { Anime, AnimeSeed, useAnimeQuery } from "../../api/source/Yumme_anime_ru";
 import LoadingSpinner from "./LoadingSpinner";
-import { SaveManager } from "../saveManager";
+import {
+  useFavouritesStore,
+  useProgressStore,
+  useStatusStore,
+} from "../saveManager";
 import HeartToggle from "./HeartToggle";
-import CustomSelect from "./CustomSelect";
+import PosterFrame from "./PosterFrame";
 import { useNavigate } from "react-router-dom";
 
-export default function AnimePage({ url }: { url: string }) {
-  const [AnimeStatus, setStatus] = useState<number>(
-    SaveManager.checkAnimeStatus(url)
+export default function AnimePage({
+  url,
+  seedOverride,
+  animeOverride,
+}: {
+  url: string;
+  seedOverride?: AnimeSeed | null;
+  animeOverride?: Anime | null;
+}) {
+  const animeStatus = useStatusStore((state) => state.animeStatus[url] ?? 0);
+  const animeStatusMap = useStatusStore((state) => state.animeStatus);
+  const setAnimeStatus = useStatusStore((state) => state.setAnimeStatus);
+  const animeProgress = useProgressStore((state) => state.animeProgress);
+  const favourites = useFavouritesStore((state) => state.favourites);
+  const addAnimeToFavourites = useFavouritesStore(
+    (state) => state.addAnimeToFavourites,
+  );
+  const removeAnimeFromFavourites = useFavouritesStore(
+    (state) => state.removeAnimeFromFavourites,
   );
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as { anime?: Anime; seed?: AnimeSeed } | null;
-  const seed = state?.anime?.animeResult ?? state?.seed ?? null;
+  const seed =
+    animeOverride?.animeResult ?? seedOverride ?? state?.anime?.animeResult ?? state?.seed ?? null;
   const skeletonBase = "var(--skeleton-base)";
   const skeletonHighlight = "var(--skeleton-highlight)";
 
   const { data: animeData, isLoading, isError, isFetching } = useAnimeQuery(url, {
-    initialData: state?.anime,
+    initialData: animeOverride ?? state?.anime,
   });
 
-  useEffect(() => {
-    setStatus(SaveManager.checkAnimeStatus(url));
-  }, [url]);
+  const statusOptions = [
+    { value: 0, label: "Не смотрел", key: "none" },
+    { value: 1, label: "Запланированно", key: "planned" },
+    { value: 2, label: "Смотрю", key: "watching" },
+    { value: 3, label: "Просмотренно", key: "completed" },
+    { value: 5, label: "Брошенно", key: "dropped" },
+  ];
+
+  const [isStatusOpen, setStatusOpen] = useState(false);
+  const statusSelectRef = useRef<HTMLDivElement | null>(null);
+  const currentStatus =
+    statusOptions.find((option) => option.value === animeStatus) ??
+    statusOptions[0];
+
+  const statusKeyFromValue = (value: number) =>
+    value === 1
+      ? "planned"
+      : value === 2
+        ? "watching"
+        : value === 3
+          ? "completed"
+          : value === 5
+            ? "dropped"
+            : undefined;
+
+  const posterStatusKey = statusKeyFromValue(animeStatus);
 
   useEffect(() => {
-    SaveManager.setAnimeStatus(url, AnimeStatus);
-  }, [AnimeStatus, url])
+    if (!statusOptions.some((option) => option.value === animeStatus)) {
+      setAnimeStatus(url, statusOptions[0].value);
+    }
+  }, [animeStatus, setAnimeStatus, statusOptions, url]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        statusSelectRef.current &&
+        !statusSelectRef.current.contains(event.target as Node)
+      ) {
+        setStatusOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   if (isLoading && !seed) return <LoadingSpinner />;
 
@@ -60,9 +120,7 @@ export default function AnimePage({ url }: { url: string }) {
 
   // Текст для кнопки в зависимости от наличия сохранения
   const getWatchButtonText = () => {
-    const savedProgress = SaveManager.getAnimeProgress(
-      display.anime_url,
-    );
+    const savedProgress = animeProgress[display.anime_url];
     if (savedProgress) {
       return `Продолжить просмотр с ${savedProgress.episode + 1} серии`;
     } else {
@@ -73,19 +131,20 @@ export default function AnimePage({ url }: { url: string }) {
   return (
     <div className={"anime-page"}>
       <div className="anime-page-info">
-        <div className="anime-page-poster">
-          {display.poster?.huge ? (
-            <img
-              className="anime-page-thumbnail"
-              src={
-                display.poster.huge &&
-                !display.poster.huge.startsWith("http")
-                  ? `https:${display.poster.huge}`
-                  : display.poster.huge
-              }
-              alt={display.title}
-            />
-          ) : isFetching ? (
+        {display.poster?.huge ? (
+          <PosterFrame
+            className="anime-page-poster"
+            status={posterStatusKey}
+            src={
+              display.poster.huge &&
+              !display.poster.huge.startsWith("http")
+                ? `https:${display.poster.huge}`
+                : display.poster.huge
+            }
+            alt={display.title}
+            imgClassName="anime-page-thumbnail"
+          />
+        ) : isFetching ? (
             <Skeleton
               width={300}
               height={420}
@@ -95,7 +154,6 @@ export default function AnimePage({ url }: { url: string }) {
           ) : (
             <div className="anime-page-thumbnail" />
           )}
-        </div>
         <div className="anime-page-title-info">
           {display.title ? (
             <h1 className="anime-page-title">{display.title}</h1>
@@ -199,7 +257,9 @@ export default function AnimePage({ url }: { url: string }) {
             <button
               className="watch-button"
               onClick={() => {
-                if(AnimeStatus == 0 || AnimeStatus == 1 || AnimeStatus == 4) SaveManager.setAnimeStatus(url, 2);
+                if (animeStatus == 0 || animeStatus == 1 || animeStatus == 4) {
+                  setAnimeStatus(url, 2);
+                }
                 navigate("/player", { state: { anime: animeData } });
               }}
             >
@@ -208,54 +268,58 @@ export default function AnimePage({ url }: { url: string }) {
           )}
           <div className="playlists">
             <HeartToggle 
-              enabledByDefault={SaveManager.CheckIsFavourite(display.anime_url)} 
-              onEnable={() => SaveManager.addAnimeToFavourites(display.anime_url)} 
-              onDisable={() => SaveManager.removeAnimeFromFavourites(display.anime_url)}
+              enabledByDefault={favourites.includes(display.anime_url)}
+              onEnable={() => addAnimeToFavourites(display.anime_url)}
+              onDisable={() => removeAnimeFromFavourites(display.anime_url)}
             />
-            <select
-              className="select-status"
-              value={AnimeStatus}
-              onChange={(e) => setStatus(Number(e.target.value))}
+            <div
+              className="custom-select"
+              data-status={currentStatus.key}
+              ref={statusSelectRef}
             >
-              <option value='0'> Hесмотрел </option>
-              <option value='1'> Запланированно </option>
-              <option value='2'> Смотрю </option>
-              <option value='3'> Просмотренно </option>
-              <option value='4'> Отложенно </option>
-              <option value='5'> Брошенно </option>
-              <option value='6'> Не буду смотреть </option>
-
-            </select>
-            <CustomSelect options={[
-              {
-                value: 0,
-                label: 'Hесмотрел',
-              },
-              {
-                value: 1,
-                label: 'Запланированно',
-              },
-              {
-                value: 2,
-                label: 'Смотрю',
-              },
-              {
-                value: 3,
-                label: 'Просмотренно',
-              },
-              {
-                value: 4,
-                label: 'Отложенно',
-              },
-              {
-                value: 5,
-                label: 'Брошенно',
-              },
-              {
-                value: 6,
-                label: 'Не буду смотреть',
-              },
-            ]} value={AnimeStatus} onChange={(e) => setStatus(Number(e))} />
+              <button
+                className="custom-select-trigger"
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={isStatusOpen}
+                onClick={() => setStatusOpen((open) => !open)}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    setStatusOpen(false);
+                  }
+                }}
+              >
+                <span className="custom-select-label">{currentStatus.label}</span>
+                <span
+                  className={`custom-select-arrow ${isStatusOpen ? "open" : ""}`}
+                  aria-hidden="true"
+                >
+                  ▾
+                </span>
+              </button>
+              {isStatusOpen && (
+                <div className="custom-select-menu" role="listbox">
+                  {statusOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="option"
+                      aria-selected={option.value === animeStatus}
+                      data-status={option.key}
+                      className={`custom-select-option ${
+                        option.value === animeStatus ? "selected" : ""
+                      }`}
+                      onClick={() => {
+                        setAnimeStatus(url, option.value);
+                        setStatusOpen(false);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -299,18 +363,42 @@ export default function AnimePage({ url }: { url: string }) {
                     }
                     style={{ cursor: "pointer" }}
                   >
-                    <div className="viewing-order-item-poster">
-                      <img
-                        className="viewing-order-item-thumbnail"
-                        src={
-                          item.poster.huge &&
-                            !item.poster.huge.startsWith("http")
-                            ? `https:${item.poster.huge}`
-                            : item.poster.huge
-                        }
-                        alt={item.title}
-                      />
-                    </div>
+                    <PosterFrame
+                      className="viewing-order-item-poster"
+                      status={statusKeyFromValue(
+                        animeStatusMap[item.anime_url] ?? 0,
+                      )}
+                      src={
+                        item.poster.huge &&
+                          !item.poster.huge.startsWith("http")
+                          ? `https:${item.poster.huge}`
+                          : item.poster.huge
+                      }
+                      alt={item.title}
+                      imgClassName="viewing-order-item-thumbnail"
+                    >
+                      <div className="viewing-order-item-overlay">
+                        <div className="viewing-order-item-overlay-top">
+                          <span className="viewing-order-item-overlay-chip">
+                            {item.year}
+                          </span>
+                          <span className="viewing-order-item-overlay-chip">
+                            {item.type.name}
+                          </span>
+                          <span
+                            className="viewing-order-item-overlay-chip viewing-order-item-status"
+                            data-status={item.anime_status.title}
+                          >
+                            {item.anime_status.title}
+                          </span>
+                        </div>
+                        <div className="viewing-order-item-overlay-bottom">
+                          <span className="viewing-order-item-overlay-title">
+                            {item.title}
+                          </span>
+                        </div>
+                      </div>
+                    </PosterFrame>
                     <div className="viewing-order-item-info">
                       <h3 className="viewing-order-item-title">{item.title}</h3>
                       <div className="viewing-order-item-meta">

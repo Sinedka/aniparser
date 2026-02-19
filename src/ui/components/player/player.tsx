@@ -9,9 +9,15 @@ import "@silvermine/videojs-quality-selector/dist/css/quality-selector.css";
 import "./player.css";
 import PlayerControls from "./PlayerControls";
 import SkipButton from "./SkipButton";
-import { SaveManager } from "../../saveManager";
+import {
+  useHistoryStore,
+  useProgressStore,
+  useSettingsStore,
+  useStatusStore,
+} from "../../saveManager";
 import ActionIcon, { ActionType } from "./ActionIcon";
 import KeymapButton from "./KeymapButton";
+import { keyStack } from "../../keyboard/KeyStack";
 
 // Импорт плагина качества видео для TypeScript
 // @ts-ignore - для обхода проблем типизации внешнего плагина
@@ -40,6 +46,13 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [currentAction, setCurrentAction] = useState<ActionType | null>(null);
   const [actionTimestamp, setActionTimestamp] = useState<number>(0);
+  const saveAnimeToHistory = useHistoryStore((state) => state.saveAnimeToHistory);
+  const animeProgress = useProgressStore((state) => state.animeProgress);
+  const saveAnimeProgress = useProgressStore((state) => state.saveAnimeProgress);
+  const settings = useSettingsStore((state) => state.settings);
+  const setPlaybackSpeed = useSettingsStore((state) => state.setPlaybackSpeed);
+  const setVolume = useSettingsStore((state) => state.setVolume);
+  const setMuted = useSettingsStore((state) => state.setMuted);
 
   // Регистрация плагина качества
   React.useEffect(() => {
@@ -48,7 +61,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       qualitySelector(videojs);
     }
 
-    SaveManager.saveAnimeToHistory(anime.animeResult.anime_url)
+    saveAnimeToHistory(anime.animeResult.anime_url);
 
     return () => {
       playerRef.current?.dispose();
@@ -57,9 +70,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
   //Получаем VideoParams
   React.useEffect(() => {
-    const savedVideoParams = SaveManager.getAnimeProgress(
-      anime.animeResult.anime_url,
-    );
+    const savedVideoParams = animeProgress[anime.animeResult.anime_url];
     if (savedVideoParams) {
       setVideoParams({
         player: savedVideoParams.player,
@@ -94,9 +105,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
           selected: index === sources.length - 1,
         };
       });
-      const savedParams = SaveManager.getAnimeProgress(
-        anime.animeResult.anime_url,
-      );
+      const savedParams = animeProgress[anime.animeResult.anime_url];
 
       if (savedParams && (
         videoParams.episode !== savedParams.episode ||
@@ -104,7 +113,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         videoParams.dubber !== savedParams.dubber )
       ) {
         console.log("Saving new anime progress");
-        SaveManager.saveAnimeProgress(anime.animeResult.anime_url, {
+        saveAnimeProgress(anime.animeResult.anime_url, {
           player: videoParams.player,
           dubber: videoParams.dubber,
           episode: videoParams.episode,
@@ -118,10 +127,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
   // Обновляем useEffect для инициализации плеера
   React.useEffect(() => {
-    const settings = SaveManager.getSettings();
-    const savedAnimeProgress = SaveManager.getAnimeProgress(
-      anime.animeResult.anime_url,
-    );
+    const savedAnimeProgress = animeProgress[anime.animeResult.anime_url];
 
     const options = {
       autoplay: true,
@@ -290,20 +296,36 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
           // Добавляем слушатели событий
           player.on("ratechange", () => {
             const newRate = player.playbackRate();
-            newRate != null && SaveManager.setPlaybackSpeed(newRate);
+            newRate != null && setPlaybackSpeed(newRate);
           });
 
           player.on("volumechange", () => {
             const newVolume = player.volume();
             const isMuted = player.muted();
-            newVolume != null && SaveManager.setVolume(newVolume);
-            isMuted != null && SaveManager.setMuted(isMuted);
+            newVolume != null && setVolume(newVolume);
+            isMuted != null && setMuted(isMuted);
           });
 
-          document.addEventListener("keydown", handleGlobalHotkeys, true);
+          const unsubscribeHotkeys = keyStack.subscribeMany(
+            [
+              "Space",
+              "KeyK",
+              "KeyJ",
+              "KeyL",
+              "KeyF",
+              "KeyM",
+              "ArrowUp",
+              "ArrowDown",
+              "ArrowLeft",
+              "ArrowRight",
+              "BracketLeft",
+              "BracketRight",
+            ],
+            handleGlobalHotkeys,
+          );
 
           player.on("dispose", () => {
-            document.removeEventListener("keydown", handleGlobalHotkeys, true);
+            unsubscribeHotkeys();
             clearProgressInterval();
           });
         });
@@ -319,14 +341,34 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         if (videoParams) {
           const animeUrl = anime.animeResult.anime_url || "";
           const currentTime = player.currentTime();
+          const duration = player.duration();
 
           if (currentTime != null && currentTime > 0) {
-            SaveManager.saveAnimeProgress(animeUrl, {
+            saveAnimeProgress(animeUrl, {
               player: videoParams.player,
               dubber: videoParams.dubber,
               episode: videoParams.episode,
               time: currentTime,
             });
+          }
+
+          if (
+            currentTime != null &&
+            duration != null &&
+            duration > 0 &&
+            videoParams
+          ) {
+            const totalEpisodes = anime.animeResult.episodes?.count;
+            if (typeof totalEpisodes === "number" && totalEpisodes > 0) {
+              const lastEpisodeIndex = totalEpisodes - 1;
+              if (videoParams.episode === lastEpisodeIndex) {
+                const progress = currentTime / duration;
+                const { animeStatus, setAnimeStatus } = useStatusStore.getState();
+                if (progress >= 0.85 && animeStatus[animeUrl] === 2) {
+                  setAnimeStatus(animeUrl, 3);
+                }
+              }
+            }
           }
         }
       }

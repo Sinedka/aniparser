@@ -3,6 +3,7 @@ import { Anime } from "../../../api/source/Yumme_anime_ru";
 import { VideoIDs } from "./types";
 import "./SkipButton.css";
 import ReactDOM from "react-dom";
+import { keyStack } from "../../keyboard/KeyStack";
 
 interface SkipButtonProps {
   player: any; // VideoJS player
@@ -20,18 +21,6 @@ const SkipButton: React.FC<SkipButtonProps> = ({
   const [isExiting, setIsExiting] = useState(false);
   const exitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleKeyPress = (event: KeyboardEvent) => {
-    if (!player) return;
-    switch (event.code) {
-      case "Enter":
-        event.preventDefault();
-        if (showSkipButton && !isExiting) {
-          handleSkip();
-        }
-        break;
-    }
-  };
-
   // Функция для пропуска опенинга
   const handleSkip = useCallback(() => {
     const currentEpisode =
@@ -46,6 +35,21 @@ const SkipButton: React.FC<SkipButtonProps> = ({
       handleHideButton();
     }
   }, [anime, videoParams, player]);
+
+  const handleKeyPress = useCallback(
+    (event: KeyboardEvent) => {
+      if (!player) return;
+      switch (event.code) {
+        case "Enter":
+          event.preventDefault();
+          if (showSkipButton && !isExiting) {
+            handleSkip();
+          }
+          break;
+      }
+    },
+    [player, showSkipButton, isExiting, handleSkip],
+  );
 
   // Функция для скрытия кнопки с анимацией
   const handleHideButton = useCallback(() => {
@@ -131,19 +135,10 @@ const SkipButton: React.FC<SkipButtonProps> = ({
   }, [videoParams]);
 
   useEffect(() => {
-    return () => document.removeEventListener("keydown", handleKeyPress, true);
-  }, []);
-
-  // Добавляем обработчик клавиш
-  useEffect(() => {
-    if (!showSkipButton) {
-      console.log("Removing keydown listener");
-      document.removeEventListener("keydown", handleKeyPress, true);
-    } else {
-      document.removeEventListener("keydown", handleKeyPress, true);
-      document.addEventListener("keydown", handleKeyPress, true);
-    }
-  }, [showSkipButton]);
+    if (!showSkipButton) return () => {};
+    const unsubscribe = keyStack.subscribe("Enter", handleKeyPress);
+    return () => unsubscribe();
+  }, [showSkipButton, handleKeyPress]);
 
   if (!showSkipButton && !isExiting) {
     return null;

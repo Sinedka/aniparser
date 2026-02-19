@@ -1,0 +1,300 @@
+.favourites-page {
+  padding: 18px 0px 0px;
+}
+
+.favourites-topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.favourites-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.favourites-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-soft);
+  width: fit-content;
+  margin-left: 28px;
+}
+
+.favourites-tab {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.favourites-tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.favourites-tab:hover {
+  color: var(--text-primary);
+  background: var(--surface-overlay-light-10);
+}
+
+.favourites-tab.is-active {
+  color: #0c0c0c;
+  background: var(--accent-primary);
+  box-shadow: 0 6px 14px rgba(30, 215, 96, 0.25);
+}
+
+.favourites-tab.is-active[data-tab="favourites"] {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  box-shadow: 0 6px 16px rgba(236, 72, 153, 0.35);
+}
+
+.favourites-tab.is-active[data-tab="planned"] {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+}
+
+.favourites-tab.is-active[data-tab="watching"] {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.35);
+}
+
+.favourites-tab.is-active[data-tab="completed"] {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.35);
+}
+
+.favourites-tab.is-active[data-tab="dropped"] {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+}
+
+.favourites-empty {
+  padding: 40px 10px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.favourites-skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.favourites-page .anime-plate-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.favourites-page .playlists {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+
+.favourites-page .playlists .heart-toggle {
+  transform: scale(0.9);
+}
+
+.custom-select {
+  position: relative;
+  min-width: 210px;
+  --select-accent: transparent;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--input-background);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 8px 20px var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.custom-select[data-status="planned"] {
+  --select-accent: #3b82f6;
+}
+
+.custom-select[data-status="watching"] {
+  --select-accent: #8b5cf6;
+}
+
+.custom-select[data-status="completed"] {
+  --select-accent: #22c55e;
+}
+
+.custom-select[data-status="dropped"] {
+  --select-accent: #ef4444;
+}
+
+.custom-select[data-status="planned"] .custom-select-trigger,
+.custom-select[data-status="watching"] .custom-select-trigger,
+.custom-select[data-status="completed"] .custom-select-trigger,
+.custom-select[data-status="dropped"] .custom-select-trigger {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--select-accent) 38%, var(--input-background)),
+    color-mix(in srgb, var(--select-accent) 12%, var(--input-background))
+  );
+  border-color: color-mix(in srgb, var(--select-accent) 70%, var(--accent-border));
+  box-shadow:
+    0 12px 26px color-mix(in srgb, var(--select-accent) 22%, transparent),
+    0 4px 10px var(--shadow);
+}
+
+.custom-select-trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px var(--shadow);
+  border-color: var(--accent-primary);
+}
+
+.custom-select-trigger:focus-visible {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 35%, transparent);
+}
+
+.custom-select-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select-arrow {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.custom-select-arrow.open {
+  transform: rotate(180deg);
+}
+
+.custom-select-menu {
+  position: absolute;
+  right: 0;
+  left: 0;
+  margin-top: 8px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-border);
+  background: var(--background-tertiary);
+  box-shadow: 0 18px 30px var(--shadow);
+  display: grid;
+  gap: 4px;
+  z-index: 20;
+  animation: selectFadeIn 0.18s ease;
+}
+
+.custom-select-option {
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  --select-accent: transparent;
+}
+
+.custom-select-option[data-status="planned"] {
+  --select-accent: #3b82f6;
+}
+
+.custom-select-option[data-status="watching"] {
+  --select-accent: #8b5cf6;
+}
+
+.custom-select-option[data-status="completed"] {
+  --select-accent: #22c55e;
+}
+
+.custom-select-option[data-status="dropped"] {
+  --select-accent: #ef4444;
+}
+
+.custom-select-option:hover {
+  background: color-mix(in srgb, var(--select-accent) 35%, transparent);
+}
+
+.custom-select-option.selected {
+  background: color-mix(in srgb, var(--select-accent) 55%, transparent);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.custom-select-arrow {
+  color: color-mix(in srgb, var(--select-accent) 70%, var(--text-primary));
+}
+
+.favourites-page .anime-data {
+  position: relative;
+  padding-bottom: 56px;
+}
+
+@keyframes selectFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .favourites-page {
+    padding: 16px;
+  }
+
+  .favourites-title {
+    font-size: 22px;
+  }
+
+  .favourites-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .favourites-tab {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+}

@@ -1,0 +1,70 @@
+.seek-bar-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.seek-bar,
+.volume-bar {
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  transition: background-size 0.18s ease;
+}
+
+.seek-bar {
+  background:
+    linear-gradient(90deg, var(--player-slider-fill), var(--player-slider-fill)) 0 0 /
+      var(--progress, 0%) 100% no-repeat,
+    linear-gradient(90deg, var(--player-slider-buffer), var(--player-slider-buffer)) 0 0 /
+      var(--buffered, 0%) 100% no-repeat,
+    var(--player-slider-bg);
+}
+
+.volume-bar {
+  background:
+    linear-gradient(90deg, var(--player-slider-fill), var(--player-slider-fill)) 0 0 /
+      var(--volume, 0%) 100% no-repeat,
+    var(--player-slider-bg);
+}
+
+.seek-bar {
+  position: relative;
+  z-index: 1;
+}
+
+.seek-bar::-webkit-slider-thumb {
+  appearance: none;
+  width: 0;
+  height: 0;
+  border: none;
+}
+
+.seek-bar::-moz-range-thumb {
+  width: 0;
+  height: 0;
+  border: none;
+}
+
+.seek-thumb {
+  position: absolute;
+  top: 50%;
+  left: var(--progress, 0%);
+  z-index: 2;
+  width: var(--player-seek-thumb-size);
+  height: var(--player-seek-thumb-size);
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 2px solid var(--accent-border);
+  transform: translate(-50%, -50%);
+  transition: left 0.18s ease;
+  pointer-events: none;
+  box-shadow: var(--player-thumb-shadow);
+}
+
+.seek-bar-wrap.dragging .seek-thumb,
+.seek-bar-wrap.dragging .seek-bar {
+  transition: none;
+}

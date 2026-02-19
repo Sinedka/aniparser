@@ -1,0 +1,128 @@
+.mini-view {
+  font-size: 0.92rem;
+}
+
+.mini-view .anime-page {
+  padding: 12px;
+  max-width: none;
+  margin: 0;
+  min-height: 100%;
+}
+
+.mini-view .anime-page-info {
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+}
+
+.mini-view .anime-page-thumbnail {
+  width: 100%;
+  max-width: 100%;
+}
+
+.mini-view .anime-page-title {
+  order: -2;
+}
+
+.mini-view .anime-page-meta,
+.mini-view .anime-page-genres,
+.mini-view .rating-container-page,
+.mini-view .watch-button,
+.mini-view .playlists {
+  order: 1;
+}
+
+.mini-view .anime-page-title-info {
+  display: contents;
+}
+
+.mini-view .anime-page-poster {
+  order: -1;
+}
+
+.mini-view .anime-page-description-container {
+  padding: 0;
+  background: transparent;
+}
+
+.mini-view .watch-button {
+  display: none;
+}
+
+.mini-view .anime-plate {
+  height: auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mini-view .anime-data {
+  margin-left: 0;
+}
+
+.mini-view .thumbnail {
+  width: 100%;
+}
+
+.mini-view .small-info {
+  flex-wrap: wrap;
+}
+
+.mini-view .search-title,
+.mini-view .search-empty {
+  font-size: 18px;
+}
+
+.mini-view .favourites-page {
+  padding: 12px 0 0;
+}
+
+.mini-view .favourites-title {
+  font-size: 20px;
+}
+
+.mini-view .favourites-tabs {
+  margin: auto;
+  /* width: 100%; */
+}
+
+.mini-view .favourites-tab {
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.mini-view .favourites-tab-label {
+  display: none;
+}
+
+.mini-view .favourites-tab-icon {
+  font-size: 14px;
+}
+
+.mini-view .viewing-order-list {
+  gap: 12px;
+}
+
+.mini-view .viewing-order-item {
+  padding: 0;
+  background: transparent;
+  flex-direction: column;
+}
+
+.mini-view .viewing-order-item-info,
+.mini-view .viewing-order-item-description {
+  display: none;
+}
+
+.mini-view .viewing-order-item-poster {
+  width: 100%;
+}
+
+.mini-view .viewing-order-item-thumbnail {
+  width: 100%;
+}
+
+.mini-view .viewing-order-item-overlay {
+  opacity: 1;
+  background: transparent;
+}

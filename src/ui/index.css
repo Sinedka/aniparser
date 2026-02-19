@@ -1,6 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   background-color: var(--background-primary);
   color: var(--text-primary);
+  font-family: "Inter", "Noto Sans", "Segoe UI", sans-serif;
   padding: 0px;
   margin: 0px;
+  overflow: hidden;
 }

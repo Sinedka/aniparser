@@ -5,8 +5,8 @@
 .video-js .skip-button-container {
   position: absolute;
   right: 10px;
-  bottom: 50px;
-  z-index: 3;
+  bottom: calc(var(--player-control-button-size) + var(--player-vertical-gap) + 34px);
+  z-index: 5;
 }
 
 .video-js .skip-button-container.enter {

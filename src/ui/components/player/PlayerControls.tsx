@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Anime } from "../../../api/source/Yumme_anime_ru";
 import { VideoIDs } from "./types";
-import "./playerControls.css";
+import "./playerControls.top.css";
+import "./playerControls.progress.css";
+import "./playerControls.bottom.css";
 import ReactDOM from "react-dom";
 import { BsVolumeDownFill, BsVolumeMuteFill, BsVolumeUpFill } from "react-icons/bs";
 import {
@@ -9,6 +11,8 @@ import {
   MdFullscreenExit,
   MdPictureInPictureAlt,
 } from "react-icons/md";
+import { useSettingsStore } from "../../saveManager";
+import { keyStack } from "../../keyboard/KeyStack";
 
 type PlayerControlsProps = {
   player: any;
@@ -92,6 +96,47 @@ const StackedSelect: React.FC<{
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return () => { };
+    const handler = (event: KeyboardEvent) => {
+      if (document.activeElement !== searchRef.current) return;
+      if (event.code === "ArrowDown" || event.code === "ArrowUp") {
+        event.preventDefault();
+        const currentIndex = filteredOptions.findIndex(
+          (option) => option.value === (tempValue ?? value),
+        );
+        const startIndex = currentIndex === -1 ? 0 : currentIndex;
+        const nextIndex =
+          event.code === "ArrowDown"
+            ? Math.min(startIndex + 1, filteredOptions.length - 1)
+            : Math.max(startIndex - 1, 0);
+        const nextOption = filteredOptions[nextIndex];
+        if (nextOption) setTempValue(nextOption.value);
+      } else if (event.code === "Enter") {
+        event.preventDefault();
+        const nextValue =
+          tempValue ??
+          filteredOptions.find((option) => option.value === value)?.value ??
+          filteredOptions[0]?.value;
+        if (typeof nextValue === "number") onChange(nextValue);
+        onToggle();
+      } else if (event.code === "Escape") {
+        event.preventDefault();
+        onToggle();
+      }
+    };
+
+    const unsubs = [
+      keyStack.subscribe("ArrowDown", handler),
+      keyStack.subscribe("ArrowUp", handler),
+      keyStack.subscribe("Enter", handler),
+      keyStack.subscribe("Escape", handler),
+    ];
+    return () => {
+      unsubs.forEach((unsub) => unsub());
+    };
+  }, [isOpen, filteredOptions, tempValue, value, onChange, onToggle]);
+
+  useEffect(() => {
     if (!isOpen) return;
     setTempValue(value);
     const raf = requestAnimationFrame(() => {
@@ -110,40 +155,12 @@ const StackedSelect: React.FC<{
           placeholder="Поиск"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => {
-            if (!isOpen) return;
-            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-              event.preventDefault();
-              const currentIndex = filteredOptions.findIndex(
-                (option) => option.value === (tempValue ?? value),
-              );
-              const startIndex = currentIndex === -1 ? 0 : currentIndex;
-              const nextIndex =
-                event.key === "ArrowDown"
-                  ? Math.min(startIndex + 1, filteredOptions.length - 1)
-                  : Math.max(startIndex - 1, 0);
-              const nextOption = filteredOptions[nextIndex];
-              if (nextOption) setTempValue(nextOption.value);
-            } else if (event.key === "Enter") {
-              event.preventDefault();
-              const nextValue =
-                tempValue ??
-                filteredOptions.find((option) => option.value === value)?.value ??
-                filteredOptions[0]?.value;
-              if (typeof nextValue === "number") onChange(nextValue);
-              onToggle();
-            } else if (event.key === "Escape") {
-              event.preventDefault();
-              onToggle();
-            }
-          }}
           onClick={(event) => event.stopPropagation()}
         />
       </div>
       <div
-        className={`stacked-select ${isOpen ? "open" : ""} ${
-          hasInteracted ? "" : "no-anim"
-        }`}
+        className={`stacked-select ${isOpen ? "open" : ""} ${hasInteracted ? "" : "no-anim"
+          }`}
         style={
           {
             "--stacked-closed-offset": `${closedOffset}px`,
@@ -154,9 +171,9 @@ const StackedSelect: React.FC<{
         onClick={
           !isOpen
             ? () => {
-                if (!hasInteracted) setHasInteracted(true);
-                onToggle();
-              }
+              if (!hasInteracted) setHasInteracted(true);
+              onToggle();
+            }
             : undefined
         }
       >
@@ -172,9 +189,8 @@ const StackedSelect: React.FC<{
                     optionRefs.current.delete(option.value);
                   }
                 }}
-                className={`stacked-select-option ${
-                  option.value === value ? "active" : ""
-                } ${isOpen && tempValue === option.value ? "keyboard" : ""}`}
+                className={`stacked-select-option ${option.value === value ? "active" : ""
+                  } ${isOpen && tempValue === option.value ? "keyboard" : ""}`}
                 onClick={(event) => {
                   event.stopPropagation();
                   if (!isOpen) {
@@ -227,10 +243,21 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [qualityIndex, setQualityIndex] = useState(0);
   const [seekValue, setSeekValue] = useState(0);
+  const [bufferedTime, setBufferedTime] = useState(0);
+  const showRemainingTime = useSettingsStore(
+    (state) => state.settings.showRemainingTime,
+  );
+  const setShowRemainingTimeSetting = useSettingsStore(
+    (state) => state.setShowRemainingTime,
+  );
+  const timeDisplayRef = useRef<HTMLDivElement>(null);
+  const [isTimeDisplayFocused, setIsTimeDisplayFocused] = useState(false);
   const isSeekingRef = useRef(false);
   const [isSeeking, setIsSeeking] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const seekStartXRef = useRef<number | null>(null);
+  const [isVolumeDragging, setIsVolumeDragging] = useState(false);
+  const volumeStartXRef = useRef<number | null>(null);
   const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
   const [isQualityMenuOpen, setIsQualityMenuOpen] = useState(false);
   const isProgressHoldRef = useRef(false);
@@ -285,6 +312,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     const resumeTime = player.currentTime?.() || 0;
     const shouldPlay = !player.paused?.();
     setQualityIndex(value);
+    setBufferedTime(0);
     isProgressHoldRef.current = true;
     setCurrentTime(resumeTime);
     setSeekValue(resumeTime);
@@ -335,6 +363,24 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
       const nextDuration = player.duration?.();
       if (typeof nextDuration === "number") setDuration(nextDuration);
     };
+    const handleBuffered = () => {
+      const nextDuration = player.duration?.();
+      if (typeof nextDuration !== "number" || nextDuration <= 0) {
+        setBufferedTime(0);
+        return;
+      }
+      const ranges = player.buffered?.();
+      if (!ranges || typeof ranges.length !== "number") {
+        setBufferedTime(0);
+        return;
+      }
+      let maxEnd = 0;
+      for (let i = 0; i < ranges.length; i += 1) {
+        const end = ranges.end(i);
+        if (end > maxEnd) maxEnd = end;
+      }
+      setBufferedTime(Math.min(maxEnd, nextDuration));
+    };
     const handleVolume = () => {
       const nextVolume = player.volume?.();
       const nextMuted = player.muted?.();
@@ -355,6 +401,9 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     player.on?.("timeupdate", handleTimeUpdate);
     player.on?.("durationchange", handleDurationChange);
     player.on?.("loadedmetadata", handleDurationChange);
+    player.on?.("progress", handleBuffered);
+    player.on?.("loadedmetadata", handleBuffered);
+    player.on?.("durationchange", handleBuffered);
     player.on?.("volumechange", handleVolume);
     player.on?.("ratechange", handleRate);
     player.on?.("fullscreenchange", handleFullscreen);
@@ -364,12 +413,16 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     handleVolume();
     handleRate();
     handleFullscreen();
+    handleBuffered();
     return () => {
       player.off?.("useractive", handleUserActive);
       player.off?.("userinactive", handleUserInactive);
       player.off?.("timeupdate", handleTimeUpdate);
       player.off?.("durationchange", handleDurationChange);
       player.off?.("loadedmetadata", handleDurationChange);
+      player.off?.("progress", handleBuffered);
+      player.off?.("loadedmetadata", handleBuffered);
+      player.off?.("durationchange", handleBuffered);
       player.off?.("volumechange", handleVolume);
       player.off?.("ratechange", handleRate);
       player.off?.("fullscreenchange", handleFullscreen);
@@ -387,6 +440,12 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
       return;
     }
     const handleClickOutside = (event: MouseEvent) => {
+      if (event.target instanceof HTMLElement && event.target.classList.contains('vjs-tech')) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        console.log('event.stopPropagation();');
+      }
       const targetNode = event.target as Node | null;
       if (!targetNode) return;
       const targetEl = targetNode as HTMLElement | null;
@@ -409,9 +468,9 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
         setIsEpisodeMenuOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside, true);
+    document.addEventListener("click", handleClickOutside, true);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside, true);
+      document.removeEventListener("click", handleClickOutside, true);
     };
   }, [
     isSpeedMenuOpen,
@@ -428,69 +487,74 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
   }, [sources]);
 
   useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      const COMMA_KEY = 188;
-      const DOT_KEY = 190;
+    const currentEpisodes =
+      anime.players[videoParams.player].dubbers[videoParams.dubber].episodes;
+    const maxEpisodes = currentEpisodes.length - 1;
+    const currentDubbers = anime.players[videoParams.player].dubbers;
+    const maxDubbers = currentDubbers.length - 1;
+    const maxPlayers = anime.players.length - 1;
 
-      const currentEpisodes =
-        anime.players[videoParams.player].dubbers[videoParams.dubber].episodes;
-      const maxEpisodes = currentEpisodes.length - 1;
-      const currentDubbers = anime.players[videoParams.player].dubbers;
-      const maxDubbers = currentDubbers.length - 1;
-      const maxPlayers = anime.players.length - 1;
+    const handleNextPlayer = (event: KeyboardEvent) => {
+      const nextPlayer = Math.min(videoParams.player + 1, maxPlayers);
+      if (nextPlayer !== videoParams.player) {
+        handlePlayerChange(nextPlayer);
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    };
 
-      const keyPressed = event.which;
+    const handlePrevPlayer = (event: KeyboardEvent) => {
+      const prevPlayer = Math.max(videoParams.player - 1, 0);
+      if (prevPlayer !== videoParams.player) {
+        handlePlayerChange(prevPlayer);
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    };
 
-      if (event.ctrlKey) {
-        if (keyPressed === DOT_KEY) {
-          const nextPlayer = Math.min(videoParams.player + 1, maxPlayers);
-          if (nextPlayer !== videoParams.player) {
-            handlePlayerChange(nextPlayer);
-          }
-          event.preventDefault();
-          event.stopPropagation();
-        } else if (keyPressed === COMMA_KEY) {
-          const prevPlayer = Math.max(videoParams.player - 1, 0);
-          if (prevPlayer !== videoParams.player) {
-            handlePlayerChange(prevPlayer);
-          }
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      } else if (event.shiftKey) {
-        if (keyPressed === DOT_KEY) {
-          const nextDubber = Math.min(videoParams.dubber + 1, maxDubbers);
-          if (nextDubber !== videoParams.dubber) {
-            handleDubberChange(nextDubber);
-          }
-          event.preventDefault();
-          event.stopPropagation();
-        } else if (keyPressed === COMMA_KEY) {
-          const prevDubber = Math.max(videoParams.dubber - 1, 0);
-          if (prevDubber !== videoParams.dubber) {
-            handleDubberChange(prevDubber);
-          }
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      } else {
-        if (keyPressed === DOT_KEY) {
-          const nextEpisode = Math.min(videoParams.episode + 1, maxEpisodes);
-          if (nextEpisode !== videoParams.episode) {
-            handleEpisodeChange(nextEpisode);
-          }
-        } else if (keyPressed === COMMA_KEY) {
-          const prevEpisode = Math.max(videoParams.episode - 1, 0);
-          if (prevEpisode !== videoParams.episode) {
-            handleEpisodeChange(prevEpisode);
-          }
-        }
+    const handleNextDubber = (event: KeyboardEvent) => {
+      const nextDubber = Math.min(videoParams.dubber + 1, maxDubbers);
+      if (nextDubber !== videoParams.dubber) {
+        handleDubberChange(nextDubber);
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    const handlePrevDubber = (event: KeyboardEvent) => {
+      const prevDubber = Math.max(videoParams.dubber - 1, 0);
+      if (prevDubber !== videoParams.dubber) {
+        handleDubberChange(prevDubber);
+      }
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    const handleNextEpisode = () => {
+      const nextEpisode = Math.min(videoParams.episode + 1, maxEpisodes);
+      if (nextEpisode !== videoParams.episode) {
+        handleEpisodeChange(nextEpisode);
       }
     };
 
-    document.addEventListener("keydown", handleKeyPress, true);
+    const handlePrevEpisode = () => {
+      const prevEpisode = Math.max(videoParams.episode - 1, 0);
+      if (prevEpisode !== videoParams.episode) {
+        handleEpisodeChange(prevEpisode);
+      }
+    };
+
+    const unsubs = [
+      keyStack.subscribe("Ctrl+Period", handleNextPlayer),
+      keyStack.subscribe("Ctrl+Comma", handlePrevPlayer),
+      keyStack.subscribe("Shift+Period", handleNextDubber),
+      keyStack.subscribe("Shift+Comma", handlePrevDubber),
+      keyStack.subscribe("Period", handleNextEpisode),
+      keyStack.subscribe("Comma", handlePrevEpisode),
+    ];
+
     return () => {
-      document.removeEventListener("keydown", handleKeyPress, true);
+      unsubs.forEach((unsub) => unsub());
     };
   }, [
     videoParams,
@@ -559,6 +623,20 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
     }
   };
 
+  const handleVolumeMove = (clientX: number) => {
+    if (isVolumeDragging) return;
+    if (volumeStartXRef.current === null) {
+      volumeStartXRef.current = clientX;
+      return;
+    }
+    if (Math.abs(clientX - volumeStartXRef.current) > 3) {
+      setIsVolumeDragging(true);
+    }
+  };
+
+  const activeTime = isSeeking ? seekValue : currentTime;
+  const remainingTime = Math.max(duration - activeTime, 0);
+
   const handleMute = () => {
     const nextMuted = !player.muted?.();
     player.muted?.(nextMuted);
@@ -570,6 +648,29 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
       player.muted?.(false);
     }
   };
+
+  const handleTimeDisplayToggle = useCallback(() => {
+    setShowRemainingTimeSetting(!showRemainingTime);
+  }, []);
+
+  useEffect(() => {
+    if (!isTimeDisplayFocused) return () => { };
+    const handler = (event: KeyboardEvent) => {
+      if (document.activeElement !== timeDisplayRef.current) return;
+      if (event.code === "Enter" || event.code === "Space") {
+        event.preventDefault();
+        event.stopPropagation();
+        handleTimeDisplayToggle();
+      }
+    };
+    const unsubs = [
+      keyStack.subscribe("Enter", handler),
+      keyStack.subscribe("Space", handler),
+    ];
+    return () => {
+      unsubs.forEach((unsub) => unsub());
+    };
+  }, [isTimeDisplayFocused, handleTimeDisplayToggle]);
 
   const handleFullscreen = () => {
     if (!player) return;
@@ -615,26 +716,24 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
           {options.find((option) => option.value === value)?.label}
         </span>
       </button>
-      {isOpen && (
-        <div className="inline-select-menu">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              className={`inline-select-option ${option.value === value ? "active" : ""}`}
-              onClick={() => {
-                onChange(option.value);
-                onToggle();
-              }}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="inline-select-menu">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            className={`inline-select-option ${option.value === value ? "active" : ""}`}
+            onClick={() => {
+              onChange(option.value);
+              onToggle();
+            }}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 
-  
+
 
   const controls = (
     <div
@@ -652,6 +751,8 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
               if (!prev) {
                 setIsDubberMenuOpen(false);
                 setIsEpisodeMenuOpen(false);
+                setIsSpeedMenuOpen(false);
+                setIsQualityMenuOpen(false);
               }
               return !prev;
             })
@@ -668,6 +769,8 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
               if (!prev) {
                 setIsPlayerMenuOpen(false);
                 setIsEpisodeMenuOpen(false);
+                setIsSpeedMenuOpen(false);
+                setIsQualityMenuOpen(false);
               }
               return !prev;
             })
@@ -684,6 +787,8 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
               if (!prev) {
                 setIsPlayerMenuOpen(false);
                 setIsDubberMenuOpen(false);
+                setIsSpeedMenuOpen(false);
+                setIsQualityMenuOpen(false);
               }
               return !prev;
             })
@@ -698,6 +803,7 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
           style={
             {
               "--progress": `${duration ? ((isSeeking ? seekValue : currentTime) / duration) * 100 : 0}%`,
+              "--buffered": `${duration ? (bufferedTime / duration) * 100 : 0}%`,
             } as React.CSSProperties
           }
         >
@@ -729,12 +835,24 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
           <div className="seek-thumb" />
         </div>
         <div className="controls-row">
-          <div className="time-display">
-            <span>{formatTime(isSeeking ? seekValue : currentTime)}</span>
+          <div
+            className="time-display"
+            role="button"
+            tabIndex={0}
+            onClick={handleTimeDisplayToggle}
+            ref={timeDisplayRef}
+            onFocus={() => setIsTimeDisplayFocused(true)}
+            onBlur={() => setIsTimeDisplayFocused(false)}
+          >
+            <span>
+              {showRemainingTime
+                ? `-${formatTime(remainingTime)}`
+                : formatTime(activeTime)}
+            </span>
             <span className="time-divider">/</span>
             <span>{formatTime(duration)}</span>
           </div>
-          <div className="volume-control">
+          <div className={`volume-control ${isVolumeDragging ? "dragging" : ""}`}>
             <button className="control-button" onClick={handleMute}>
               {isMuted || volume === 0 ? (
                 <BsVolumeMuteFill />
@@ -744,15 +862,51 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
                 <BsVolumeUpFill />
               )}
             </button>
-            <input
-              className="volume-bar"
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={isMuted ? 0 : volume}
-              onChange={(event) => handleVolumeChange(Number(event.target.value))}
-            />
+            <div
+              className="volume-bar-wrap"
+              style={
+                {
+                  "--volume": `${(isMuted ? 0 : volume) * 100}%`,
+                } as React.CSSProperties
+              }
+            >
+              <input
+                className="volume-bar"
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={isMuted ? 0 : volume}
+                onChange={(event) => handleVolumeChange(Number(event.target.value))}
+                onMouseDown={(event) => {
+                  volumeStartXRef.current = event.clientX;
+                  setIsVolumeDragging(false);
+                }}
+                onMouseMove={(event) => handleVolumeMove(event.clientX)}
+                onMouseUp={() => {
+                  setIsVolumeDragging(false);
+                  volumeStartXRef.current = null;
+                }}
+                onMouseLeave={() => {
+                  setIsVolumeDragging(false);
+                  volumeStartXRef.current = null;
+                }}
+                onTouchStart={(event) => {
+                  const touch = event.touches[0];
+                  volumeStartXRef.current = touch?.clientX ?? null;
+                  setIsVolumeDragging(false);
+                }}
+                onTouchMove={(event) => {
+                  const touch = event.touches[0];
+                  if (touch) handleVolumeMove(touch.clientX);
+                }}
+                onTouchEnd={() => {
+                  setIsVolumeDragging(false);
+                  volumeStartXRef.current = null;
+                }}
+              />
+              <div className="volume-thumb" />
+            </div>
           </div>
           <div className="controls-spacer" />
           <div className="inline-select-row">
@@ -762,7 +916,12 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
               isOpen: isSpeedMenuOpen,
               onToggle: () =>
                 setIsSpeedMenuOpen((prev) => {
-                  if (!prev) setIsQualityMenuOpen(false);
+                  if (!prev) {
+                    setIsQualityMenuOpen(false);
+                    setIsPlayerMenuOpen(false);
+                    setIsDubberMenuOpen(false);
+                    setIsEpisodeMenuOpen(false);
+                  }
                   return !prev;
                 }),
               onChange: handleSpeedChange,
@@ -775,7 +934,12 @@ const PlayerControls: React.FC<PlayerControlsProps> = ({
                 isOpen: isQualityMenuOpen,
                 onToggle: () =>
                   setIsQualityMenuOpen((prev) => {
-                    if (!prev) setIsSpeedMenuOpen(false);
+                    if (!prev) {
+                      setIsSpeedMenuOpen(false);
+                      setIsPlayerMenuOpen(false);
+                      setIsDubberMenuOpen(false);
+                      setIsEpisodeMenuOpen(false);
+                    }
                     return !prev;
                   }),
                 onChange: handleQualityChange,

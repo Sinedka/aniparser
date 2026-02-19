@@ -6,6 +6,7 @@
 .thumbnail {
   display: flex;
   position: relative;
+  --poster-radius: 16px;
 }
 
 .anime-plate {
@@ -16,7 +17,7 @@
   cursor: pointer;
   text-decoration: none;
   transition: background-color 0.3s;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .anime-plate:hover {
