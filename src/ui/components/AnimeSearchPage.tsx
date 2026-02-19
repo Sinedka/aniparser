@@ -1,6 +1,6 @@
 import "./AnimeSearchPage.css";
 import { Search, seedFromSearch, useSearchQuery } from "../../api/source/Yumme_anime_ru";
-import { useNavigate } from "react-router-dom";
+import { type NavigateFunction, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import PosterFrame from "./PosterFrame";
 import { useStatusStore } from "../saveManager";
@@ -10,7 +10,7 @@ function AnimePlate({
   onNavigate,
 }: {
   searchData: Search;
-  onNavigate: (to: string) => void;
+  onNavigate: NavigateFunction;
 }) {
   const statusKeyFromValue = (value: number) =>
     value === 1

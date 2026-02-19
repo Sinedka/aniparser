@@ -245,7 +245,9 @@ export default function FavouritesPage() {
 
   type TabId = (typeof tabs)[number]["id"];
   const [activeTab, setActiveTab] = useState<TabId>("favourites");
-  const activeTabData = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
+  const statusTabs = tabs.filter(
+    (tab): tab is (typeof tabs)[number] & { status: number } => "status" in tab,
+  );
 
   useEffect(() => {
     if (favourites.length > favouritesSnapshot.length) {
@@ -255,10 +257,12 @@ export default function FavouritesPage() {
 
   const activeUrls = useMemo(() => {
     if (activeTab === "favourites") return favouritesSnapshot;
+    const statusTab = statusTabs.find((tab) => tab.id === activeTab);
+    if (!statusTab) return [];
     return Object.entries(animeStatus)
-      .filter(([, status]) => status === activeTabData.status)
+      .filter(([, status]) => status === statusTab.status)
       .map(([url]) => url);
-  }, [activeTab, activeTabData.status, animeStatus, favouritesSnapshot]);
+  }, [activeTab, animeStatus, favouritesSnapshot, statusTabs]);
 
   const {
     data,

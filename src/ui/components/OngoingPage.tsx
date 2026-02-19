@@ -14,7 +14,14 @@ import PosterFrame from "./PosterFrame";
 type FeedAnimeItem = FeedResponse["new"][number];
 type FeedCardItem = Pick<
   FeedAnimeItem,
-  "title" | "poster" | "anime_status" | "type" | "year" | "description" | "rating"
+  | "anime_url"
+  | "title"
+  | "poster"
+  | "anime_status"
+  | "type"
+  | "year"
+  | "description"
+  | "rating"
 >;
 type FeedScheduleItem = FeedResponse["schedule"][number];
 
