@@ -1,0 +1,36 @@
+name: Notify repo B on release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger repository_dispatch in repo B
+        env:
+          TOKEN: ${{ secrets.REPO_B_TOKEN }}
+          OWNER: OWNER_NAME
+          REPO: REPO_B
+          TAG: ${{ github.event.release.tag_name }}
+          URL: ${{ github.event.release.html_url }}
+          SHA: ${{ github.sha }}
+          SOURCE: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          echo "Dispatching to ${OWNER}/${REPO} for tag ${TAG}"
+
+          curl -sS -L -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            https://api.github.com/repos/${OWNER}/${REPO}/dispatches \
+            -d "$(jq -n \
+              --arg event_type "release_published" \
+              --arg source_repo "${SOURCE}" \
+              --arg tag "${TAG}" \
+              --arg release_url "${URL}" \
+              --arg sha "${SHA}" \
+              '{event_type: $event_type, client_payload: {source_repo: $source_repo, tag: $tag, release_url: $release_url, sha: $sha}}'
+            )"
