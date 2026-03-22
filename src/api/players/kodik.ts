@@ -1,7 +1,7 @@
 import { BaseVideoExtractor, Video } from "./base";
 
 // Регулярное выражение для проверки URL Kodik
-const KODIK_URL_REGEX = /^https:\/\/kodik\.info/;
+const KODIK_URL_REGEX = /^https:\/\/kodikplayer\.com/;
 /**
  * Интерфейс для API-запроса Kodik
  */
