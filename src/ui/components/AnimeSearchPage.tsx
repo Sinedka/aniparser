@@ -1,5 +1,5 @@
 import "./AnimeSearchPage.css";
-import { Search, seedFromSearch, useSearchQuery } from "../../api/source/Yumme_anime_ru";
+import {} from "../../api/source/Yumme_anime_ru";
 import { type NavigateFunction, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import PosterFrame from "./PosterFrame";

@@ -1,28 +1,19 @@
 import "./OngoingPage.css";
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
-  AnimeSeed,
-  FeedResponse,
-  useAnimeListInfiniteQuery,
-  useFeedQuery,
+  useAnimeCluster,
+  useFeed,
 } from "../../api/source/Yumme_anime_ru";
+
+import {
+  AnimeResult,
+  FeedResponse
+} from "../../api/source/yummi_anime_types";
 import { useHistoryStore, useStatusStore } from "../saveManager";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import PosterFrame from "./PosterFrame";
 
-type FeedAnimeItem = FeedResponse["new"][number];
-type FeedCardItem = Pick<
-  FeedAnimeItem,
-  | "anime_url"
-  | "title"
-  | "poster"
-  | "anime_status"
-  | "type"
-  | "year"
-  | "description"
-  | "rating"
->;
 type FeedScheduleItem = FeedResponse["schedule"][number];
 
 const ESTIMATED_SCHEDULE_CARD_HEIGHT = 360;
@@ -40,6 +31,8 @@ const statusKeyFromValue = (value: number) =>
         : value === 5
           ? "dropped"
           : undefined;
+
+type FeedAnimeItem = FeedResponse["new"][number];
 
 type DeferredSectionProps = {
   estimatedHeight: number;
@@ -76,48 +69,18 @@ const DeferredSection: React.FC<DeferredSectionProps> = ({ estimatedHeight, chil
   );
 };
 
-function seedFromFeed(item: FeedAnimeItem): AnimeSeed {
-  return {
-    anime_url: item.anime_url,
-    title: item.title,
-    poster: item.poster,
-    description: item.description,
-    anime_status: item.anime_status,
-    type: item.type,
-    year: item.year,
-    rating: {
-      average: item.rating?.average ?? 0,
-      counters: item.rating?.counters ?? 0,
-      kp_rating: 0,
-      anidub_rating: 0,
-      myanimelist_rating: 0,
-      shikimori_rating: 0,
-      worldart_rating: 0,
-    },
-  };
-}
-
-function seedFromSchedule(item: FeedScheduleItem): AnimeSeed {
-  return {
-    anime_url: item.anime_url,
-    title: item.title,
-    poster: item.poster,
-    description: item.description,
-  };
-}
-
 const FeedAnimeCardView = React.memo(function FeedAnimeCardView({
   item,
   showDescription,
 }: {
-  item: FeedCardItem;
+  item: AnimeResult;
   showDescription: boolean;
 }) {
   const posterUrl = !item.poster.huge.startsWith("http")
     ? `https:${item.poster.huge}`
     : item.poster.huge;
   const statusValue = useStatusStore(
-    (state) => state.animeStatus[item.anime_url] ?? 0,
+    (state) => state.animeStatus[item.anime_id] ?? 0,
   );
   const statusKey = statusKeyFromValue(statusValue);
 
@@ -156,7 +119,7 @@ const FeedAnimeCardView = React.memo(function FeedAnimeCardView({
   );
 });
 
-function FeedAnimeCard(item: FeedCardItem, options?: { showDescription?: boolean }) {
+function FeedAnimeCard(item: AnimeResult, options?: { showDescription?: boolean }) {
   const showDescription = options?.showDescription ?? true;
   return <FeedAnimeCardView item={item} showDescription={showDescription} />;
 }
@@ -337,19 +300,26 @@ export default function MainPage() {
     typeof window !== "undefined" ? window.innerWidth : 1200,
   );
 
-  const {
-    data: feed,
-    isLoading: isFeedLoading,
-    isError: isFeedError,
-  } = useFeedQuery();
+  const [error, feed] = useFeed();
 
-  const {
-    data: historyPages,
-    isLoading: isHistoryLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useAnimeListInfiniteQuery(historyUrls, 12);
+  useEffect(() => {
+    console.log("feed", feed, error);
+  }, [feed]);
+
+  useEffect(() => {
+    console.log("historyUrls", historyUrls);
+  }, [historyUrls]);
+
+
+  // const {
+  //   data: historyPages,
+  //   isLoading: isHistoryLoading,
+  //   fetchNextPage,
+  //   hasNextPage,
+  //   isFetchingNextPage,
+  // } = useAnimeListInfiniteQuery(historyUrls, 12);
+
+  const [historyError, historyPages, fetchNextPage] = useAnimeCluster(historyUrls, 12);
 
   const historyAnimes = useMemo(
     () => historyPages?.pages.flat() ?? [],
@@ -394,7 +364,7 @@ export default function MainPage() {
   );
 
 
-  if (isFeedLoading) {
+  if (error.code === 1) {
     return (
       <>
         {historyUrls.length > 0 && (
@@ -504,22 +474,23 @@ export default function MainPage() {
     );
   }
 
-  if (isFeedError) {
+  if (error.code > 1) {
     return (
       <div className="error-container">
-        <p className="error-text">Ошибка при загрузке данных</p>
+        <p className="error-text">Ошибка при загрузке данных Error code: {error.code}, message: {error.message}</p>
       </div>
     );
   }
 
   const handleHistoryScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const target = event.currentTarget;
-    if (!hasNextPage || isFetchingNextPage) return;
+    // if (!hasNextPage || isFetchingNextPage) return;
     const preloadOffset = 500;
     if (target.scrollLeft + target.clientWidth >= target.scrollWidth - preloadOffset) {
       fetchNextPage();
     }
   };
+
   const scrollHistoryBy = (direction: "left" | "right") => {
     const shelf = historyShelfRef.current;
     if (!shelf) return;
@@ -532,7 +503,7 @@ export default function MainPage() {
 
   return (
     <>
-      {historyUrls.length > 0 && isHistoryLoading && (
+      {historyUrls.length > 0 && (
         <section className="feed-section">
           <div className="feed-section-header">
             <h2 className="feed-section-title">Продолжение просмотра</h2>
@@ -599,48 +570,48 @@ export default function MainPage() {
               onScroll={handleHistoryScroll}
             >
               <div className="feed-shelf">
-              {historyAnimes.map((anime, i) => (
-                <div
-                  key={`history-${i}`}
-                  className="feed-card-wrapper"
-                  onClick={() =>
-                    navigate(
-                      `/anime?url=${encodeURIComponent(anime.animeResult.anime_url)}`,
-                      { state: { anime } }
-                    )
-                  }
-                >
-                {FeedAnimeCard(anime.animeResult, { showDescription: false })}
-                </div>
-              ))}
-              {isFetchingNextPage && (
-                <div className="feed-card-wrapper">
-                  <div className="feed-card">
-                    <div className="feed-card-media">
-                      <Skeleton
-                        height="100%"
-                        width="100%"
-                        baseColor={skeletonBase}
-                        highlightColor={skeletonHighlight}
-                      />
-                    </div>
-                    <div className="feed-card-body">
-                      <Skeleton
-                        width="80%"
-                        height={18}
-                        baseColor={skeletonBase}
-                        highlightColor={skeletonHighlight}
-                      />
-                      <Skeleton
-                        count={2}
-                        height={12}
-                        baseColor={skeletonBase}
-                        highlightColor={skeletonHighlight}
-                      />
+                {historyAnimes.map((anime, i) => (
+                  <div
+                    key={`history-${i}`}
+                    className="feed-card-wrapper"
+                    onClick={() =>
+                      navigate(
+                        `/anime?url=${encodeURIComponent(anime.anime_url)}`,
+                        { state: { anime } }
+                      )
+                    }
+                  >
+                    {FeedAnimeCard(anime, { showDescription: false })}
+                  </div>
+                ))}
+                {(
+                  <div className="feed-card-wrapper">
+                    <div className="feed-card">
+                      <div className="feed-card-media">
+                        <Skeleton
+                          height="100%"
+                          width="100%"
+                          baseColor={skeletonBase}
+                          highlightColor={skeletonHighlight}
+                        />
+                      </div>
+                      <div className="feed-card-body">
+                        <Skeleton
+                          width="80%"
+                          height={18}
+                          baseColor={skeletonBase}
+                          highlightColor={skeletonHighlight}
+                        />
+                        <Skeleton
+                          count={2}
+                          height={12}
+                          baseColor={skeletonBase}
+                          highlightColor={skeletonHighlight}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
               </div>
             </div>
             <button
@@ -658,8 +629,8 @@ export default function MainPage() {
               ›
             </button>
           </div>
-          </section>
-        )}
+        </section>
+      )}
       {(feed?.schedule?.length ?? 0) > 0 && (
         <section className="schedule-section">
           <div className="schedule-header">
@@ -679,38 +650,13 @@ export default function MainPage() {
                   labelSource={labelSource}
                   onNavigate={(item) =>
                     navigate(
-                      `/anime?url=${encodeURIComponent(item.anime_url)}`,
-                      { state: { seed: seedFromSchedule(item) } },
+                      `/anime?id=${encodeURIComponent(item.anime_id)}`,
                     )
                   }
                 />
               </DeferredSection>
             );
           })}
-        </section>
-      )}
-      {(feed?.recommends?.length ?? 0) > 0 && (
-        <section className="feed-section">
-          <div className="feed-section-header">
-            <h2 className="feed-section-title">Рекомендуем</h2>
-            <p className="feed-section-subtitle">Персональная подборка</p>
-          </div>
-          <div className="feed-shelf">
-            {feed?.recommends.map((item, i) => (
-              <div
-                key={`rec-${i}`}
-                className="feed-card-wrapper"
-                onClick={() =>
-                  navigate(
-                    `/anime?url=${encodeURIComponent(item.anime_url)}`,
-                    { state: { seed: seedFromFeed(item) } }
-                  )
-                }
-              >
-                {FeedAnimeCard(item)}
-              </div>
-            ))}
-          </div>
         </section>
       )}
     </>

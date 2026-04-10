@@ -1,5 +1,5 @@
 import { InfiniteScroll } from "./InfiniteScrol";
-import { Anime, useAnimeListInfiniteQuery } from "../../api/source/Yumme_anime_ru";
+import {} from "../../api/source/Yumme_anime_ru";
 import { useHistoryStore, useStatusStore } from "../saveManager";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";

@@ -29,7 +29,6 @@ import MiniAnimePage from "./components/mini/MiniAnimePage";
 import MiniSearchPage from "./components/mini/MiniSearchPage";
 import MiniHistoryPage from "./components/mini/MiniHistoryPage";
 import MiniFavouritesPage from "./components/mini/MiniFavouritesPage";
-import { Anime, AnimeSeed } from "../api/source/Yumme_anime_ru";
 import { keyStack } from "./keyboard/KeyStack";
 import type { Location } from "react-router-dom";
 
@@ -263,8 +262,8 @@ function SearchRoute() {
 
 function AnimeRoute() {
   const [params] = useSearchParams();
-  const url = params.get("url") || "";
-  return url ? <AnimePage url={url} /> : <OngoingPage />;
+  const id = params.get("id") || "";
+  return id ? <AnimePage id={id} /> : <OngoingPage />;
 }
 
 function PlayerRoute() {

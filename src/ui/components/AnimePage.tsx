@@ -1,9 +1,7 @@
 import "./AnimePage.css";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
-import { Anime, AnimeSeed, useAnimeQuery } from "../../api/source/Yumme_anime_ru";
-import LoadingSpinner from "./LoadingSpinner";
+import { useAnime } from "../../api/source/Yumme_anime_ru";
 import {
   useFavouritesStore,
   useProgressStore,
@@ -14,15 +12,11 @@ import PosterFrame from "./PosterFrame";
 import { useNavigate } from "react-router-dom";
 
 export default function AnimePage({
-  url,
-  seedOverride,
-  animeOverride,
+  id,
 }: {
-  url: string;
-  seedOverride?: AnimeSeed | null;
-  animeOverride?: Anime | null;
+  id: string;
 }) {
-  const animeStatus = useStatusStore((state) => state.animeStatus[url] ?? 0);
+  const animeStatus = useStatusStore((state) => state.animeStatus[id] ?? 0);
   const animeStatusMap = useStatusStore((state) => state.animeStatus);
   const setAnimeStatus = useStatusStore((state) => state.setAnimeStatus);
   const animeProgress = useProgressStore((state) => state.animeProgress);
@@ -34,16 +28,13 @@ export default function AnimePage({
     (state) => state.removeAnimeFromFavourites,
   );
   const navigate = useNavigate();
-  const location = useLocation();
-  const state = location.state as { anime?: Anime; seed?: AnimeSeed } | null;
-  const seed =
-    animeOverride?.animeResult ?? seedOverride ?? state?.anime?.animeResult ?? state?.seed ?? null;
   const skeletonBase = "var(--skeleton-base)";
   const skeletonHighlight = "var(--skeleton-highlight)";
 
-  const { data: animeData, isLoading, isError, isFetching } = useAnimeQuery(url, {
-    initialData: animeOverride ?? state?.anime,
-  });
+  const [error, animeData] = useAnime(id);
+  useEffect(() => {
+    console.log(animeData);
+  }, [animeData])
 
   const statusOptions = [
     { value: 0, label: "Не смотрел", key: "none" },
@@ -74,9 +65,9 @@ export default function AnimePage({
 
   useEffect(() => {
     if (!statusOptions.some((option) => option.value === animeStatus)) {
-      setAnimeStatus(url, statusOptions[0].value);
+      setAnimeStatus(id, statusOptions[0].value);
     }
-  }, [animeStatus, setAnimeStatus, statusOptions, url]);
+  }, [animeStatus, setAnimeStatus, statusOptions, id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -92,18 +83,11 @@ export default function AnimePage({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (isLoading && !seed) return <LoadingSpinner />;
-
-  if (isError && !seed) {
-    return <div>Ошибка при загрузке данных</div>;
+  if (error.code > 1) {
+    return <div>Ошибка при загрузке данных error {error.code} {error.message}</div>;
   }
 
-  const display = animeData?.animeResult ?? seed;
-  if (!display) {
-    return <LoadingSpinner />;
-  }
-
-  const rating = display.rating?.average ?? 0;
+  const rating = animeData?.rating?.average | 0;
   const stars = Array(5)
     .fill(0)
     .map((_, index) => {
@@ -120,7 +104,7 @@ export default function AnimePage({
 
   // Текст для кнопки в зависимости от наличия сохранения
   const getWatchButtonText = () => {
-    const savedProgress = animeProgress[display.anime_url];
+    const savedProgress = animeProgress[animeData.anime_url];
     if (savedProgress) {
       return `Продолжить просмотр с ${savedProgress.episode + 1} серии`;
     } else {
@@ -131,20 +115,20 @@ export default function AnimePage({
   return (
     <div className={"anime-page"}>
       <div className="anime-page-info">
-        {display.poster?.huge ? (
+        {animeData?.poster?.huge ? (
           <PosterFrame
             className="anime-page-poster"
             status={posterStatusKey}
             src={
-              display.poster.huge &&
-              !display.poster.huge.startsWith("http")
-                ? `https:${display.poster.huge}`
-                : display.poster.huge
+              animeData.poster.huge &&
+              !animeData.poster.huge.startsWith("http")
+                ? `https:${animeData.poster.huge}`
+                : animeData.poster.huge
             }
-            alt={display.title}
+            alt={animeData.title}
             imgClassName="anime-page-thumbnail"
           />
-        ) : isFetching ? (
+        ) : error.code === 1 ? (
             <Skeleton
               width={300}
               height={420}
@@ -155,9 +139,9 @@ export default function AnimePage({
             <div className="anime-page-thumbnail" />
           )}
         <div className="anime-page-title-info">
-          {display.title ? (
-            <h1 className="anime-page-title">{display.title}</h1>
-          ) : isFetching ? (
+          {animeData?.title ? (
+            <h1 className="anime-page-title">{animeData.title}</h1>
+          ) : error.code === 1 ? (
             <Skeleton
               width="70%"
               height={32}
@@ -169,14 +153,14 @@ export default function AnimePage({
           )}
 
           <div className="anime-page-meta">
-            {display.anime_status?.title ? (
+            {animeData?.anime_status?.title ? (
               <div
                 className="meta-el anime-status"
-                data-status={display.anime_status.title}
+                data-status={animeData.anime_status.title}
               >
-                {display.anime_status.title}
+                {animeData?.anime_status.title}
               </div>
-            ) : isFetching ? (
+            ) : error.code === 1 ? (
               <Skeleton
                 width={110}
                 height={28}
@@ -184,9 +168,9 @@ export default function AnimePage({
                 highlightColor={skeletonHighlight}
               />
             ) : null}
-            {display.type?.name ? (
-              <div className="meta-el">{display.type.name}</div>
-            ) : isFetching ? (
+            {animeData?.type?.name ? (
+              <div className="meta-el">{animeData.type.name}</div>
+            ) : error.code === 1 ? (
               <Skeleton
                 width={110}
                 height={28}
@@ -194,9 +178,9 @@ export default function AnimePage({
                 highlightColor={skeletonHighlight}
               />
             ) : null}
-            {display.year ? (
-              <div className="meta-el">{display.year}</div>
-            ) : isFetching ? (
+            {animeData?.year ? (
+              <div className="meta-el">{animeData.year}</div>
+            ) : error.code === 1 ? (
               <Skeleton
                 width={110}
                 height={28}
@@ -205,15 +189,15 @@ export default function AnimePage({
               />
             ) : null}
           </div>
-          {display.genres && display.genres.length > 0 ? (
+          {animeData?.genres && animeData.genres.length > 0 ? (
               <div className="anime-page-genres">
-                {display.genres.map((genre, index) => (
+                {animeData.genres.map((genre, index) => (
                   <span key={index} className="genre-tag">
                     {genre.title}
                   </span>
                 ))}
               </div>
-            ) : isFetching ? (
+            ) : error.code === 1 ? (
               <div className="anime-page-genres">
                 <Skeleton
                   width={90}
@@ -245,7 +229,7 @@ export default function AnimePage({
               <div className="rating-stars">{stars}</div>
               <div className="rating-value">{rating.toFixed(1)}</div>
             </div>
-          ) : isFetching ? (
+          ) : error.code === 1 ? (
             <Skeleton
               width={160}
               height={32}
@@ -253,12 +237,12 @@ export default function AnimePage({
               highlightColor={skeletonHighlight}
             />
           ) : null}
-          {animeData?.players && animeData.players.length > 0 && (
+          {animeData?.videos && animeData.videos.length > 0 && (
             <button
               className="watch-button"
               onClick={() => {
                 if (animeStatus == 0 || animeStatus == 1 || animeStatus == 4) {
-                  setAnimeStatus(url, 2);
+                  setAnimeStatus(id, 2);
                 }
                 navigate("/player", { state: { anime: animeData } });
               }}
@@ -268,9 +252,9 @@ export default function AnimePage({
           )}
           <div className="playlists">
             <HeartToggle 
-              enabledByDefault={favourites.includes(display.anime_url)}
-              onEnable={() => addAnimeToFavourites(display.anime_url)}
-              onDisable={() => removeAnimeFromFavourites(display.anime_url)}
+              enabledByDefault={favourites.includes(animeData?.anime_url)}
+              onEnable={() => addAnimeToFavourites(animeData?.anime_url)}
+              onDisable={() => removeAnimeFromFavourites(animeData?.anime_url)}
             />
             <div
               className="custom-select"
@@ -310,7 +294,7 @@ export default function AnimePage({
                         option.value === animeStatus ? "selected" : ""
                       }`}
                       onClick={() => {
-                        setAnimeStatus(url, option.value);
+                        setAnimeStatus(id, option.value);
                         setStatusOpen(false);
                       }}
                     >
@@ -324,11 +308,11 @@ export default function AnimePage({
         </div>
       </div>
       <div className="anime-page-description-container">
-        {display.description ? (
+        {animeData?.description ? (
           <p className="anime-page-description">
-            {display.description}
+            {animeData.description}
           </p>
-        ) : isFetching ? (
+        ) : error.code === 1 ? (
           <Skeleton
             height={120}
             baseColor={skeletonBase}
@@ -337,12 +321,12 @@ export default function AnimePage({
         ) : (
           <p className="anime-page-description">Описание отсутствует</p>
         )}
-        {animeData?.animeResult.viewing_order &&
-          animeData.animeResult.viewing_order.length > 0 && (
+        {animeData?.viewing_order &&
+          animeData.viewing_order.length > 0 && (
             <div className="viewing-order-container">
               <h2 className="viewing-order-title">Порядок просмотра</h2>
               <div className="viewing-order-list">
-                {animeData.animeResult.viewing_order.map((item, index) => (
+                {animeData.viewing_order.map((item, index) => (
                   <div
                     key={index}
                     className="viewing-order-item"
