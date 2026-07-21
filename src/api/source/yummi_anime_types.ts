@@ -461,7 +461,7 @@ export interface AnimeResult {
 
 export interface SearchInput {
   studio_ids?: Array<number>;
-  query?: string;
+  q?: string;
   director_ids?: Array<number>;
   worldart_ids?: Array<number>;
   mal_ids?: Array<number>;

@@ -4,7 +4,7 @@ import { CSSProperties, ReactNode } from "react";
 type PosterFrameProps = {
   src: string;
   alt: string;
-  status?: string | null;
+  status?: number | null;
   className?: string;
   imgClassName?: string;
   radius?: string;
@@ -24,10 +24,21 @@ export default function PosterFrame({
   decoding,
   children,
 }: PosterFrameProps) {
+  const statusString = status === 1
+    ? "planned"
+    : status === 2
+      ? "watching"
+      : status === 3
+        ? "completed"
+        : status === 5
+          ? "dropped"
+          : undefined;
+
+
   return (
     <div
       className={`poster-frame${className ? ` ${className}` : ""}`}
-      data-status={status ?? undefined}
+      data-status={statusString ?? undefined}
       style={radius ? ({ ["--poster-radius"]: radius } as CSSProperties) : undefined}
     >
       <div className="poster-frame-media">

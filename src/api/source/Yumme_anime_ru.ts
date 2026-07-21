@@ -2,6 +2,7 @@ import { AnimeResult, SearchResult, FeedResponse, SearchInput } from "./yummi_an
 import { create } from 'zustand'
 import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import isEqual from 'lodash.isequal';
 
 interface ApiResponse<T> {
   response: T;
@@ -13,8 +14,6 @@ function isObject(value: unknown): value is Record<string, any> {
 
 function merge<T>(a: T, b: Partial<T>): T {
   const result = { ...a };
-
-  console.log(a, b);
 
   for (const key in b) {
     const bValue = b[key];
@@ -61,27 +60,48 @@ function errorFromUnknown(err: unknown): Error {
   return new Error(0, String(err));
 }
 
+let canUpdate = true;
+
 type AnimeState = {
   Anime: Record<string, AnimeResult>
   setAnime: (anime: any) => void;
 }
 
-const useAnimeStore = create<AnimeState>((set) => ({
+const useAnimeStore = create<AnimeState>((set, get) => ({
   Anime: {},
-  setAnime: (anime: AnimeResult) =>
+
+  setAnime: (anime: AnimeResult) => {
+    const current = get().Anime[anime.anime_id]
+
+    const next = current
+      ? merge<AnimeResult>(current, anime)
+      : anime
+
+    // если ничего не изменилось — выходим
+    if (isEqual(current, next)) {
+      return
+    }
+
     set((state) => ({
       Anime: {
         ...state.Anime,
-        [anime.anime_id]: state.Anime[anime.anime_id] ? merge<AnimeResult>(state.Anime[anime.anime_id], anime) : anime,
+        [anime.anime_id]: next,
       },
-    })),
-}));
-
-export function useAnime(id: string): [Error, AnimeResult] {
+    }))
+  },
+}))
+export function useAnime(id: number): [Error, AnimeResult] {
   const anime = useAnimeStore((state) => state.Anime[id]);
   const [status, setStatus] = useState(loading);
 
   useEffect(() => {
+    if (!canUpdate) {
+      return;
+    }
+
+    canUpdate = false;
+    setTimeout(() => canUpdate = true, 10000);
+
     getAnime(id).then((data) => {
       if (data instanceof Error) {
         setStatus(data);
@@ -95,15 +115,23 @@ export function useAnime(id: string): [Error, AnimeResult] {
 
   return [status, anime];
 }
-export function useSearch(input: SearchInput) {
-  const [search, setSearch] = useState<SearchResult[] | Error>(loading);
+export function useSearch(input: SearchInput): [Error, SearchResult[] | undefined] {
+  const [search, setSearch] = useState<SearchResult[]>();
+  const [status, setStatus] = useState(loading);
+
   useEffect(() => {
     searchTitles(input).then(data => {
+      if (data instanceof Error) {
+        setStatus(data);
+        return
+      }
       setSearch(data);
+      setStatus(new Error());
+
     });
   }, [input])
 
-  return [search];
+  return [status, search];
 }
 
 export function useFeed(): [Error, FeedResponse | undefined] {
@@ -126,7 +154,7 @@ export function useFeed(): [Error, FeedResponse | undefined] {
 }
 
 export function useAnimeCluster(
-  ids: string[],
+  ids: number[],
   pageSize: number
 ): [Error | null, { pages: Array<AnimeResult[]> }, () => void] {
 
@@ -134,10 +162,9 @@ export function useAnimeCluster(
   const [page, setPage] = useState(0);
   const [loadingPages, setLoadingPages] = useState<Set<number>>(new Set());
 
-  // берём ВСЕ доступные аниме из стора
   const animes = useAnimeStore(
     useShallow((state) =>
-      ids.map((id) => state.Anime[id]).filter(Boolean)
+      ids.slice(page * pageSize, (page + 1) * pageSize).map((id) => state.Anime[id]).filter(Boolean)
     )
   );
 
@@ -168,7 +195,7 @@ export function useAnimeCluster(
         setError(null);
 
         await searchTitles({
-          ids: pageIds.map((id) => parseInt(id)),
+          ids: pageIds.map((id) => id),
         });
 
         if (cancelled) return;
@@ -251,8 +278,6 @@ async function apiRequest<T>(
       throw new Error(0, "API error");
     }
 
-    console.log(data);
-
     return data as T;
   } catch (err) {
     throw errorFromUnknown(err);
@@ -284,7 +309,6 @@ async function searchTitles(
     "anime",
     input
   );
-
 
   const ans = response.response;
   ans.map((item) => {

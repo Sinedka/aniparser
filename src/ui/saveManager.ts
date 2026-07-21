@@ -37,25 +37,25 @@ type SettingsStore = {
 };
 
 type ProgressStore = {
-  animeProgress: Record<string, AnimeSaveData>;
-  saveAnimeProgress: (url: string, data: AnimeSaveData) => void;
-  clearAnimeProgress: (url: string) => void;
+  animeProgress: Record<number, AnimeSaveData>;
+  saveAnimeProgress: (id: number, data: AnimeSaveData) => void;
+  clearAnimeProgress: (id: number) => void;
 };
 
 type HistoryStore = {
-  history: string[];
-  saveAnimeToHistory: (url: string) => void;
+  history: number[];
+  saveAnimeToHistory: (id: number) => void;
 };
 
 type FavouritesStore = {
-  favourites: string[];
-  addAnimeToFavourites: (url: string) => void;
-  removeAnimeFromFavourites: (url: string) => void;
+  favourites: number[];
+  addAnimeToFavourites: (id: number) => void;
+  removeAnimeFromFavourites: (id: number) => void;
 };
 
 type StatusStore = {
-  animeStatus: Record<string, number>;
-  setAnimeStatus: (url: string, status: number) => void;
+  animeStatus: Record<number, number>;
+  setAnimeStatus: (id: number, status: number) => void;
 };
 
 const loadLegacyState = () => {

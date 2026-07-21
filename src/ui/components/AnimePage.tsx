@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 export default function AnimePage({
   id,
 }: {
-  id: string;
+  id: number;
 }) {
   const animeStatus = useStatusStore((state) => state.animeStatus[id] ?? 0);
   const animeStatusMap = useStatusStore((state) => state.animeStatus);
@@ -32,6 +32,7 @@ export default function AnimePage({
   const skeletonHighlight = "var(--skeleton-highlight)";
 
   const [error, animeData] = useAnime(id);
+
   useEffect(() => {
     console.log(animeData);
   }, [animeData])
@@ -104,7 +105,7 @@ export default function AnimePage({
 
   // Текст для кнопки в зависимости от наличия сохранения
   const getWatchButtonText = () => {
-    const savedProgress = animeProgress[animeData.anime_url];
+    const savedProgress = animeProgress[animeData.anime_id];
     if (savedProgress) {
       return `Продолжить просмотр с ${savedProgress.episode + 1} серии`;
     } else {
@@ -252,9 +253,9 @@ export default function AnimePage({
           )}
           <div className="playlists">
             <HeartToggle 
-              enabledByDefault={favourites.includes(animeData?.anime_url)}
-              onEnable={() => addAnimeToFavourites(animeData?.anime_url)}
-              onDisable={() => removeAnimeFromFavourites(animeData?.anime_url)}
+              enabledByDefault={favourites.includes(animeData?.anime_id)}
+              onEnable={() => addAnimeToFavourites(animeData?.anime_id)}
+              onDisable={() => removeAnimeFromFavourites(animeData?.anime_id)}
             />
             <div
               className="custom-select"
@@ -331,7 +332,7 @@ export default function AnimePage({
                     key={index}
                     className="viewing-order-item"
                     onClick={() =>
-                      navigate(`/anime?url=${encodeURIComponent(item.anime_url)}`, {
+                      navigate(`/anime?id=${encodeURIComponent(item.anime_id)}`, {
                         state: {
                           seed: {
                             anime_url: item.anime_url,
@@ -350,7 +351,7 @@ export default function AnimePage({
                     <PosterFrame
                       className="viewing-order-item-poster"
                       status={statusKeyFromValue(
-                        animeStatusMap[item.anime_url] ?? 0,
+                        animeStatusMap[item.anime_id] ?? 0,
                       )}
                       src={
                         item.poster.huge &&

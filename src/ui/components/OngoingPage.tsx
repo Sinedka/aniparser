@@ -32,8 +32,6 @@ const statusKeyFromValue = (value: number) =>
           ? "dropped"
           : undefined;
 
-type FeedAnimeItem = FeedResponse["new"][number];
-
 type DeferredSectionProps = {
   estimatedHeight: number;
   children: React.ReactNode;
@@ -82,13 +80,12 @@ const FeedAnimeCardView = React.memo(function FeedAnimeCardView({
   const statusValue = useStatusStore(
     (state) => state.animeStatus[item.anime_id] ?? 0,
   );
-  const statusKey = statusKeyFromValue(statusValue);
 
   return (
     <article className="feed-card">
       <PosterFrame
         className="feed-card-media"
-        status={statusKey}
+        status={statusValue}
         src={posterUrl}
         alt={item.title}
         loading="lazy"
@@ -132,14 +129,13 @@ const ScheduleCard = React.memo(function ScheduleCard({
   onClick: () => void;
 }) {
   const statusValue = useStatusStore(
-    (state) => state.animeStatus[item.anime_url] ?? 0,
+    (state) => state.animeStatus[item.anime_id] ?? 0,
   );
-  const statusKey = statusKeyFromValue(statusValue);
   return (
     <article className="schedule-card" onClick={onClick}>
       <PosterFrame
         className="schedule-media"
-        status={statusKey}
+        status={statusValue}
         src={
           item.poster.huge.startsWith("http")
             ? item.poster.huge

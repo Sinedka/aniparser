@@ -1,4 +1,4 @@
-import { Anime } from "../../../api/source/Yumme_anime_ru";
+import { AnimeResult } from "../../../api/source/yummi_anime_types";
 import { useRef, useState } from "react";
 import { VideoIDs } from "./types";
 import React from "react";
@@ -34,7 +34,7 @@ interface VideoSource {
   selected?: boolean;
 }
 
-function Player({ anime }: { anime: Anime }): React.ReactElement {
+function Player({ anime }: { anime: AnimeResult }): React.ReactElement {
   //PlayerRef
   const videoRef = React.useRef<HTMLDivElement | null>(null);
   const playerRef = React.useRef<VideoJsPlayer | null>(null);
@@ -61,7 +61,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
       qualitySelector(videojs);
     }
 
-    saveAnimeToHistory(anime.animeResult.anime_url);
+    saveAnimeToHistory(anime.anime_id);
 
     return () => {
       playerRef.current?.dispose();
@@ -70,7 +70,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
   //Получаем VideoParams
   React.useEffect(() => {
-    const savedVideoParams = animeProgress[anime.animeResult.anime_url];
+    const savedVideoParams = animeProgress[anime.anime_id];
     if (savedVideoParams) {
       setVideoParams({
         player: savedVideoParams.player,
@@ -105,7 +105,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
           selected: index === sources.length - 1,
         };
       });
-      const savedParams = animeProgress[anime.animeResult.anime_url];
+      const savedParams = animeProgress[anime.anime_id];
 
       if (savedParams && (
         videoParams.episode !== savedParams.episode ||
@@ -113,7 +113,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
         videoParams.dubber !== savedParams.dubber )
       ) {
         console.log("Saving new anime progress");
-        saveAnimeProgress(anime.animeResult.anime_url, {
+        saveAnimeProgress(anime.anime_id, {
           player: videoParams.player,
           dubber: videoParams.dubber,
           episode: videoParams.episode,
@@ -127,7 +127,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
   // Обновляем useEffect для инициализации плеера
   React.useEffect(() => {
-    const savedAnimeProgress = animeProgress[anime.animeResult.anime_url];
+    const savedAnimeProgress = animeProgress[anime.anime_id];
 
     const options = {
       autoplay: true,
@@ -339,7 +339,7 @@ function Player({ anime }: { anime: Anime }): React.ReactElement {
 
       function SaveTime() {
         if (videoParams) {
-          const animeUrl = anime.animeResult.anime_url || "";
+          const animeUrl = anime.anime_id;
           const currentTime = player.currentTime();
           const duration = player.duration();
 

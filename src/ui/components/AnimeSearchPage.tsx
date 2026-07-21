@@ -1,15 +1,17 @@
 import "./AnimeSearchPage.css";
-import {} from "../../api/source/Yumme_anime_ru";
 import { type NavigateFunction, useNavigate } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import PosterFrame from "./PosterFrame";
 import { useStatusStore } from "../saveManager";
+import { useSearch } from "../../api/source/Yumme_anime_ru";
+import { SearchResult, SearchInput } from "../../api/source/yummi_anime_types";
+import { useEffect, useMemo } from "react";
 
 function AnimePlate({
   searchData,
   onNavigate,
 }: {
-  searchData: Search;
+  searchData: SearchResult;
   onNavigate: NavigateFunction;
 }) {
   const statusKeyFromValue = (value: number) =>
@@ -22,9 +24,9 @@ function AnimePlate({
           : value === 5
             ? "dropped"
             : undefined;
-  const rating = searchData.searchResult.rating.average;
+  const rating = searchData.rating.average;
   const statusValue = useStatusStore(
-    (state) => state.animeStatus[searchData.searchResult.anime_url] ?? 0,
+    (state) => state.animeStatus[searchData.anime_url] ?? 0,
   );
   const statusKey = statusKeyFromValue(statusValue);
   const stars = Array(5)
@@ -47,20 +49,18 @@ function AnimePlate({
       target="_blank"
       rel="noopener noreferrer"
       onClick={() =>
-        onNavigate(`/anime?url=${encodeURIComponent(searchData.searchResult.anime_url)}`, {
-          state: { seed: seedFromSearch(searchData) },
-        })
+        onNavigate(`/anime?id=${encodeURIComponent(searchData.anime_id)}`)
       }
     >
       <PosterFrame
         className="thumbnail"
         status={statusKey}
         src={
-          !searchData.searchResult.poster.huge.startsWith("http")
-            ? `https:${searchData.searchResult.poster.huge}`
-            : searchData.searchResult.poster.huge
+          !searchData.poster.huge.startsWith("http")
+            ? `https:${searchData.poster.huge}`
+            : searchData.poster.huge
         }
-        alt={searchData.searchResult.title}
+        alt={searchData.title}
         imgClassName="thumbnail-img"
       >
         {rating > 0 && (
@@ -71,21 +71,21 @@ function AnimePlate({
         )}
       </PosterFrame>
       <div className="anime-data">
-        <h3 className="title">{searchData.searchResult.title}</h3>
+        <h3 className="title">{searchData.title}</h3>
         <div className="small-info">
           <div
             className="small-info-el anime-status"
-            data-status={searchData.searchResult.anime_status.title}
+            data-status={searchData.anime_status.title}
           >
-            {searchData.searchResult.anime_status.title}
+            {searchData.anime_status.title}
           </div>
           <div className="small-info-el">
-            {searchData.searchResult.type.name}
+            {searchData.type.name}
           </div>
-          <div className="small-info-el">{searchData.searchResult.year}</div>
+          <div className="small-info-el">{searchData.year}</div>
         </div>
 
-        <p className="description">{searchData.searchResult.description}</p>
+        <p className="description">{searchData.description}</p>
       </div>
     </a>
   );
@@ -144,11 +144,22 @@ function SkeletonPlate(baseColor: string, highlightColor: string) {
 
 export default function SearchPage({ query }: { query: string }) {
   const navigate = useNavigate();
-  const { data, isFetching, isError, isPending } = useSearchQuery(query);
+
+  const searchInput = useMemo(
+    () => ({ q: query } satisfies SearchInput),
+    [query]
+  );
+
+  const [status, data] = useSearch(searchInput);
+
   const skeletonBase = "var(--skeleton-base)";
   const skeletonHighlight = "var(--skeleton-highlight)";
 
-  if (isPending || (isFetching && !data)) {
+  useEffect(() => {
+    console.log(query);
+  }, [query]);
+
+  if (status.code === 1) {
     return (
       <div className="anime-list">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -160,7 +171,7 @@ export default function SearchPage({ query }: { query: string }) {
     );
   }
 
-  if (isError) {
+  if (status.code > 1) {
     return <div>Ошибка при загрузке данных</div>;
   }
 
