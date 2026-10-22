@@ -22,6 +22,7 @@ import { keyStack } from "../../keyboard/KeyStack";
 // Импорт плагина качества видео для TypeScript
 // @ts-ignore - для обхода проблем типизации внешнего плагина
 import qualitySelector from "@silvermine/videojs-quality-selector";
+import { Kodik } from "../../../api/players/kodik";
 
 // Определение типов для VideoJS
 type VideoJsPlayer = ReturnType<typeof videojs>;
@@ -91,38 +92,47 @@ function Player({ anime }: { anime: AnimeResult }): React.ReactElement {
   React.useEffect(() => {
     if (!videoParams) return;
     // Получаем источники видео из аниме
-    const currentEpisode =
-      anime.players[videoParams.player].dubbers[videoParams.dubber].episodes[
-        videoParams.episode
-      ];
-    currentEpisode.getSources().then((sources) => {
-      // Создаем источники с метками качества
-      const videoSources = sources.map((source, index) => {
-        return {
-          src: source.url,
-          type: "application/x-mpegURL", // TODO: Определять правильный тип
-          label: source.title,
-          selected: index === sources.length - 1,
-        };
-      });
-      const savedParams = animeProgress[anime.anime_id];
-
-      if (savedParams && (
-        videoParams.episode !== savedParams.episode ||
-        videoParams.player !== savedParams.player ||
-        videoParams.dubber !== savedParams.dubber )
-      ) {
-        console.log("Saving new anime progress");
-        saveAnimeProgress(anime.anime_id, {
-          player: videoParams.player,
-          dubber: videoParams.dubber,
-          episode: videoParams.episode,
-          time: 0,
-        });
+    // const currentEpisode =
+    //   anime.players[videoParams.player].dubbers[videoParams.dubber].episodes[
+    //     videoParams.episode
+    //   ];
+    const kodik = new Kodik();
+    var ans;
+    for (const i of anime.videos) {
+      if (Kodik.isValidUrl("https:" + i.iframe_url)) {
+        kodik.parse("https:" + i.iframe_url).then((e)=>{console.log(e[0].url)})
       }
 
-      setSources(videoSources);
-    });
+    }
+    console.log()
+    // currentEpisode.getSources().then((sources) => {
+    //   // Создаем источники с метками качества
+    //   const videoSources = sources.map((source, index) => {
+    //     return {
+    //       src: source.url,
+    //       type: "application/x-mpegURL", // TODO: Определять правильный тип
+    //       label: source.title,
+    //       selected: index === sources.length - 1,
+    //     };
+    //   });
+    //   const savedParams = animeProgress[anime.anime_id];
+    //
+    //   if (savedParams && (
+    //     videoParams.episode !== savedParams.episode ||
+    //     videoParams.player !== savedParams.player ||
+    //     videoParams.dubber !== savedParams.dubber )
+    //   ) {
+    //     console.log("Saving new anime progress");
+    //     saveAnimeProgress(anime.anime_id, {
+    //       player: videoParams.player,
+    //       dubber: videoParams.dubber,
+    //       episode: videoParams.episode,
+    //       time: 0,
+    //     });
+    //   }
+    //
+    //   setSources(videoSources);
+    // });
   }, [videoParams]);
 
   // Обновляем useEffect для инициализации плеера

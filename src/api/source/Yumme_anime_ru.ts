@@ -286,7 +286,7 @@ async function apiRequest<T>(
 
 async function getAnime(
   aliasOrId: string | number,
-  needVideos = false,
+  needVideos = true,
   options: Record<string, any> = {}
 ): Promise<AnimeResult | Error> {
   const params = { need_videos: needVideos, ...options };

@@ -19,7 +19,6 @@
           buildInputs = with pkgs; [
             nodejs
             electron
-            wine
           ];
 
           shellHook = ''
